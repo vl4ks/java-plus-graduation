@@ -1,4 +1,3 @@
-
 server:
   port: 0
 
@@ -12,7 +11,9 @@ spring:
       server:
         native:
           searchLocations:
-            - classpath:config/{application}
+            - classpath:config/infra/{application}
+            - classpath:config/core/{application}
+            - classpath:config/stats/{application}
 
 
 eureka:
