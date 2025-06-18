@@ -7,22 +7,21 @@ spring:
     config:
       fail-fast: true
       retry:
-        useRandomPolicy: true
+        use-random-policy: true
         max-interval: 6000
       discovery:
         enabled: true
         serviceId: config-server
-  main:
-    banner-mode: "off"
-    logging:
-      level:
-        root: INFO
-        org.springframework.cloud: TRACE
-        org.springframework.web: DEBUG
-        org.hibernate: DEBUG
-        feign: DEBUG
-        com.netflix: DEBUG
-        reactor.netty: DEBUG
+logging:
+  level:
+    root: DEBUG
+    org.springframework.web: TRACE
+    org.springframework.cloud: TRACE
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+    feign: DEBUG
+    com.netflix.discovery: DEBUG
+
 eureka:
   client:
     serviceUrl:
