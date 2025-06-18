@@ -1,6 +1,9 @@
 server:
   port: 0
 
+client:
+  url: http://stats-server:9090
+
 spring:
   jpa:
     hibernate:
@@ -15,9 +18,7 @@ spring:
       mode: always
 
   datasource:
-    driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:8432/ewm-main-db
-    username: main
-    password: main
-
-ewmServiceName: ewm-service
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/ewm-main
+    username: root
+    password: root

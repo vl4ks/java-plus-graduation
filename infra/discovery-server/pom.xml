@@ -12,7 +12,6 @@
     <artifactId>discovery-server</artifactId>
 
     <dependencies>
-        <!-- Eureka Server -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
@@ -29,7 +28,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>ru.practicum.DiscoveryServerApplication</mainClass>
+                    <mainClass>ru.practicum.DiscoveryServer</mainClass>
                 </configuration>
             </plugin>
         </plugins>
