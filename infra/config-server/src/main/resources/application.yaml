@@ -11,10 +11,11 @@ spring:
       server:
         native:
           searchLocations:
-            - classpath:config/infra/{application}
-            - classpath:config/core/{application}
-            - classpath:config/stats/{application}
-
+            - classpath:config/infra/
+            - classpath:config/core/
+            - classpath:config/stats/
+      discovery:
+        enabled: true
 
 eureka:
   client:
