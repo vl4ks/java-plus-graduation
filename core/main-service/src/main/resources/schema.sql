@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS events (
     paid BOOLEAN NOT NULL DEFAULT false,
     request_moderation BOOLEAN NOT NULL DEFAULT false,
     participant_limit BIGINT NOT NULL DEFAULT 0,
-    confirmedRequests BIGINT NOT NULL DEFAULT 0,
+    confirmed_requests BIGINT NOT NULL DEFAULT 0,
     state VARCHAR(50) NOT NULL,
     created_on TIMESTAMP NOT NULL,
     published_on TIMESTAMP,
@@ -51,4 +51,12 @@ CREATE TABLE IF NOT EXISTS requests (
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
     FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT unique_request UNIQUE (event_id, requester_id)
+);
+
+CREATE TABLE IF NOT EXISTS compilations_event (
+    compilation_id BIGINT NOT NULL,
+    event_id BIGINT NOT NULL,
+    PRIMARY KEY (compilation_id, event_id),
+    FOREIGN KEY (compilation_id) REFERENCES compilations(id) ON DELETE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
