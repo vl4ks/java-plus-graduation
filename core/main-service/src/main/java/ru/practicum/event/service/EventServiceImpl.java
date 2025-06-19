@@ -185,20 +185,30 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
 
-        validateEventDateForAdmin(eventDto.getEventDate() == null ? event.getEventDate() : LocalDateTime.parse(eventDto.getEventDate(), formatter), eventDto.getStateAction());
+        validateEventDateForAdmin(
+                eventDto.getEventDate() == null ? event.getEventDate() : LocalDateTime.parse(eventDto.getEventDate(), formatter),
+                eventDto.getStateAction()
+        );
         validateStatusForAdmin(event.getState(), eventDto.getStateAction());
 
-        Category category = categoryRepository.findById(eventDto.getCategory())
-                .orElseThrow(() -> new NotFoundException("Категория с id=" + eventDto.getCategory() + " не найдена"));
+        Category category = null;
+        if (eventDto.getCategory() != null) {
+            category = categoryRepository.findById(eventDto.getCategory())
+                    .orElseThrow(() -> new NotFoundException("Категория с id=" + eventDto.getCategory() + " не найдена"));
+        }
 
+        Location location = null;
+        if (eventDto.getLocation() != null) {
+            location = saveLocation(eventDto.getLocation());
+        }
 
-        final Location location = saveLocation(eventDto.getLocation());
         eventDtoMapper.updateFromDto(event, eventDto, category, location);
-        if (eventDto.getStateAction() != null && eventDto.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
+
+        if (eventDto.getStateAction() == StateAction.PUBLISH_EVENT) {
             event.setPublishedOn(LocalDateTime.now());
         }
 
-        final Event updatedEvent = eventRepository.save(event);
+        Event updatedEvent = eventRepository.save(event);
 
         return eventDtoMapper.mapToFullDto(
                 updatedEvent,
