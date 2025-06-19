@@ -30,13 +30,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     @Override
     public CategoryDto create(NewCategoryDto newCategoryDto) {
-        try {
-            Category category = categoryDtoMapper.mapFromDto(newCategoryDto);
-            Category createdCategory = categoryRepository.save(category);
-            return categoryDtoMapper.mapToDto(createdCategory);
-        } catch (DataIntegrityViolationException e) {
-            throw new DuplicateException("Категория с таким именем уже существует");
-        }
+        Category category = categoryDtoMapper.mapFromDto(newCategoryDto);
+        checkForCategoryDuplicates(category.getName());
+        Category createdCategory = categoryRepository.save(category);
+        return categoryDtoMapper.mapToDto(createdCategory);
     }
 
     @Override
@@ -55,14 +52,14 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryDtoMapper.mapToDto(category);
     }
 
-    @Transactional
+
     @Override
     public CategoryDto update(Long categoryId, CategoryDto categoryDto) {
         final Category category = categoryRepository.findById(categoryId).orElseThrow(
                 () -> new NotFoundException("Category with id=" + categoryId + " was not found")
         );
         if (!category.getName().equals(categoryDto.getName())) {
-            category.setName(categoryDto.getName());
+            checkForCategoryDuplicates(categoryDto.getName());
         }
 
         final Category updatedCategory = categoryRepository.save(category);
@@ -81,5 +78,12 @@ public class CategoryServiceImpl implements CategoryService {
             throw new ConflictException("Нельзя удалить категорию с привязанными событиями");
         }
         categoryRepository.delete(category);
+    }
+
+    private void checkForCategoryDuplicates(String categoryName) {
+        Boolean isDuplicate = categoryRepository.existsByNameIgnoreCase(categoryName);
+        if (isDuplicate) {
+            throw new DuplicateException("This category already exists");
+        }
     }
 }
