@@ -1,13 +1,18 @@
 package ru.practicum.category.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.category.dto.NewCategoryDto;
 import ru.practicum.category.mapper.CategoryDtoMapper;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.storage.CategoryRepository;
+import ru.practicum.event.storage.EventRepository;
+import ru.practicum.exception.ConflictException;
+import ru.practicum.exception.DuplicateException;
 import ru.practicum.exception.NotFoundException;
 
 import java.util.ArrayList;
@@ -16,15 +21,22 @@ import java.util.stream.Collectors;
 
 @Service("categoryServiceImpl")
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryDtoMapper categoryDtoMapper;
+    private final EventRepository eventRepository;
 
+    @Transactional
     @Override
     public CategoryDto create(NewCategoryDto newCategoryDto) {
-        final Category category = categoryDtoMapper.mapFromDto(newCategoryDto);
-        final Category createdCategory = categoryRepository.save(category);
-        return categoryDtoMapper.mapToDto(createdCategory);
+        try {
+            Category category = categoryDtoMapper.mapFromDto(newCategoryDto);
+            Category createdCategory = categoryRepository.save(category);
+            return categoryDtoMapper.mapToDto(createdCategory);
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateException("Категория с таким именем уже существует");
+        }
     }
 
     @Override
@@ -43,22 +55,31 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryDtoMapper.mapToDto(category);
     }
 
+    @Transactional
     @Override
     public CategoryDto update(Long categoryId, CategoryDto categoryDto) {
         final Category category = categoryRepository.findById(categoryId).orElseThrow(
                 () -> new NotFoundException("Category with id=" + categoryId + " was not found")
         );
-        category.setName(categoryDto.getName());
+        if (!category.getName().equals(categoryDto.getName())) {
+            category.setName(categoryDto.getName());
+        }
+
         final Category updatedCategory = categoryRepository.save(category);
         return categoryDtoMapper.mapToDto(updatedCategory);
 
     }
 
+    @Transactional
     @Override
     public void delete(Long categoryId) {
         final Category category = categoryRepository.findById(categoryId).orElseThrow(
                 () -> new NotFoundException("Category with id=" + categoryId + " was not found")
         );
+
+        if (eventRepository.existsByCategoryId(categoryId)) {
+            throw new ConflictException("Нельзя удалить категорию с привязанными событиями");
+        }
         categoryRepository.delete(category);
     }
 }

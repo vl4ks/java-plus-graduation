@@ -3,6 +3,8 @@ package ru.practicum.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.exception.DuplicateException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.user.dto.NewUserRequest;
 import ru.practicum.user.dto.UserDto;
@@ -17,14 +19,19 @@ import java.util.stream.Collectors;
 
 @Service("userServiceImpl")
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserDtoMapper userDtoMapper;
 
+    @Transactional
     @Override
     public UserDto create(NewUserRequest newUserRequest) {
-        final User user = userDtoMapper.mapFromDto(newUserRequest);
-        final User createdUser = userRepository.save(user);
+        if (userRepository.existsByEmail(newUserRequest.getEmail())) {
+            throw new DuplicateException("User with email '" + newUserRequest.getEmail() + "' already exists");
+        }
+        User user = userDtoMapper.mapFromDto(newUserRequest);
+        User createdUser = userRepository.save(user);
         return userDtoMapper.mapToDto(createdUser);
     }
 
