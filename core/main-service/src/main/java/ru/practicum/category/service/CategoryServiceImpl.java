@@ -30,10 +30,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     @Override
     public CategoryDto create(NewCategoryDto newCategoryDto) {
-        Category category = categoryDtoMapper.mapFromDto(newCategoryDto);
-        checkForCategoryDuplicates(category.getName());
-        Category createdCategory = categoryRepository.save(category);
-        return categoryDtoMapper.mapToDto(createdCategory);
+        try {
+            Category category = categoryRepository.save(categoryDtoMapper.mapFromDto(newCategoryDto));
+            return categoryDtoMapper.mapToDto(category);
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateException("Категория с таким именем уже существует");
+        }
     }
 
     @Override

@@ -16,11 +16,9 @@ public class CategoryDtoMapper {
     }
 
     public Category mapFromDto(NewCategoryDto categoryDto) {
-        final Category category = new Category(
-                null,
-                categoryDto.getName()
-        );
-        return category;
+        return Category.builder()
+                .name(categoryDto.getName())
+                .build();
     }
 
     public Category mapFromDto(CategoryDto categoryDto) {
