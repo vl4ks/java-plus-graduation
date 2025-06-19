@@ -16,6 +16,7 @@ import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.category.mapper.CategoryDtoMapper;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.service.CategoryService;
+import ru.practicum.category.storage.CategoryRepository;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.mapper.EventDtoMapper;
 import ru.practicum.event.model.Event;
@@ -59,6 +60,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryDtoMapper categoryDtoMapper;
     private final LocationDtoMapper locationDtoMapper;
     private final RestTemplate restTemplate = new RestTemplate();
+    private final CategoryRepository categoryRepository;
 
     final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -180,12 +182,16 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto updateByAdmin(Long eventId, UpdateEventAdminRequest eventDto) {
-        final Event event = findEventById(eventId);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
 
         validateEventDateForAdmin(eventDto.getEventDate() == null ? event.getEventDate() : LocalDateTime.parse(eventDto.getEventDate(), formatter), eventDto.getStateAction());
         validateStatusForAdmin(event.getState(), eventDto.getStateAction());
 
-        final Category category = findCategoryById(eventDto.getCategory());
+        Category category = categoryRepository.findById(eventDto.getCategory())
+                .orElseThrow(() -> new NotFoundException("Категория с id=" + eventDto.getCategory() + " не найдена"));
+
+
         final Location location = saveLocation(eventDto.getLocation());
         eventDtoMapper.updateFromDto(event, eventDto, category, location);
         if (eventDto.getStateAction() != null && eventDto.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
