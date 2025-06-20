@@ -14,8 +14,7 @@ spring:
             - classpath:config/infra/{application}
             - classpath:config/core/{application}
             - classpath:config/stats/{application}
-      discovery:
-        enabled: true
+
 
 eureka:
   client:
