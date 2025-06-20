@@ -47,9 +47,9 @@ import java.util.stream.Collectors;
 @Service("eventServiceImpl")
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
-    private static final String APP_NAME = "main_svc";
+    private static final String APP_NAME = "main-service";
     private static final String STATS_SERVICE_SCHEME = "http";
-    private static final String STATS_SERVICE_HOST = "ewm-stats-server";
+    private static final String STATS_SERVICE_HOST = "stats-server";
     private static final Integer STATS_SERVICE_PORT = 9090;
     private final UserService userService;
     private final CategoryService categoryService;

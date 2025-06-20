@@ -78,4 +78,13 @@ public class ErrorHandler {
                 e.getMessage()
         );
     }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception.class)
+    public ApiError handleAllExceptions(Exception e) {
+        log.debug("Получен статус 500 INTERNAL_SERVER_ERROR {}", e.getMessage(), e);
+        return new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Произошла непредвиденная ошибка",
+                e.getMessage());
+    }
 }

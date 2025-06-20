@@ -77,8 +77,6 @@ services:
       - POSTGRES_PASSWORD=root
       - POSTGRES_USER=root
       - POSTGRES_DB=ewm-stats
-    networks:
-      - ewm-net
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
@@ -114,8 +112,6 @@ services:
     container_name: postgres-ewm-main-db
     ports:
       - "6433:5432"
-    networks:
-      - ewm-net
     environment:
       - POSTGRES_PASSWORD=root
       - POSTGRES_USER=root
