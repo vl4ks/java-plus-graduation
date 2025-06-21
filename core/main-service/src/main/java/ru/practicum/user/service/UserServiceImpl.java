@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.exception.DuplicateException;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.user.dto.NewUserRequest;
 import ru.practicum.user.dto.UserDto;
@@ -28,7 +28,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto create(NewUserRequest newUserRequest) {
         if (userRepository.existsByEmail(newUserRequest.getEmail())) {
-            throw new DuplicateException("User with email '" + newUserRequest.getEmail() + "' already exists");
+            throw new ConflictException("This email is already registered") {
+            };
         }
         User user = userDtoMapper.mapFromDto(newUserRequest);
         User createdUser = userRepository.save(user);

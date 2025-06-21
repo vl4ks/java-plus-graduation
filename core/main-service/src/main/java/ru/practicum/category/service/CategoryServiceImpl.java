@@ -11,11 +11,11 @@ import ru.practicum.category.model.Category;
 import ru.practicum.category.storage.CategoryRepository;
 import ru.practicum.event.storage.EventRepository;
 import ru.practicum.exception.ConflictException;
-import ru.practicum.exception.DuplicateException;
 import ru.practicum.exception.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("categoryServiceImpl")
@@ -29,7 +29,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto create(NewCategoryDto newCategoryDto) {
         final Category category = categoryDtoMapper.mapFromDto(newCategoryDto);
-        checkForCategoryDuplicates(category.getName());
+        checkForCategoryDuplicates(newCategoryDto.getName(), category.getId());
         final Category createdCategory = categoryRepository.save(category);
         return categoryDtoMapper.mapToDto(createdCategory);
     }
@@ -56,8 +56,10 @@ public class CategoryServiceImpl implements CategoryService {
         final Category category = categoryRepository.findById(categoryId).orElseThrow(
                 () -> new NotFoundException("Category with id=" + categoryId + " was not found")
         );
-        if (!category.getName().equals(categoryDto.getName())) {
-            checkForCategoryDuplicates(categoryDto.getName());
+
+        if (!category.getName().equalsIgnoreCase(categoryDto.getName())) {
+            checkForCategoryDuplicates(categoryDto.getName(), categoryId);
+            category.setName(categoryDto.getName());
         }
 
         final Category updatedCategory = categoryRepository.save(category);
@@ -78,10 +80,10 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.delete(category);
     }
 
-    private void checkForCategoryDuplicates(String categoryName) {
-        Boolean isDuplicate = categoryRepository.existsByNameIgnoreCase(categoryName);
-        if (isDuplicate) {
-            throw new DuplicateException("This category already exists");
+    private void checkForCategoryDuplicates(String categoryName, Long currentCategoryId) {
+        Optional<Category> existing = categoryRepository.findByNameIgnoreCase(categoryName);
+        if (existing.isPresent() && !existing.get().getId().equals(currentCategoryId)) {
+            throw new ConflictException("This category already exists");
         }
     }
 }
