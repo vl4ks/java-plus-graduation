@@ -57,6 +57,7 @@ public class UserServiceImpl implements UserService {
         return userDtoMapper.mapToDto(user);
     }
 
+    @Transactional
     @Override
     public void delete(Long userId) {
         final User user = userRepository.findById(userId).orElseThrow(
