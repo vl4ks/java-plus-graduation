@@ -19,7 +19,7 @@ public class ResponseHitDto {
 
     private String app;
 
-    private String url;
+    private String uri;
 
     private String ip;
 
