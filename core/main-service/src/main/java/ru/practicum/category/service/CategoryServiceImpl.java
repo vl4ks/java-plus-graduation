@@ -1,7 +1,6 @@
 package ru.practicum.category.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,21 +20,18 @@ import java.util.stream.Collectors;
 
 @Service("categoryServiceImpl")
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryDtoMapper categoryDtoMapper;
     private final EventRepository eventRepository;
 
-    @Transactional
     @Override
     public CategoryDto create(NewCategoryDto newCategoryDto) {
-        try {
-            Category category = categoryRepository.save(categoryDtoMapper.mapFromDto(newCategoryDto));
-            return categoryDtoMapper.mapToDto(category);
-        } catch (DataIntegrityViolationException e) {
-            throw new DuplicateException("Категория с таким именем уже существует");
-        }
+        final Category category = categoryDtoMapper.mapFromDto(newCategoryDto);
+        checkForCategoryDuplicates(category.getName());
+        final Category createdCategory = categoryRepository.save(category);
+        return categoryDtoMapper.mapToDto(createdCategory);
     }
 
     @Override

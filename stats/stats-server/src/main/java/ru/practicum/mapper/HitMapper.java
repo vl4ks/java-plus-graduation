@@ -28,7 +28,7 @@ public class HitMapper {
         return ResponseHitDto.builder()
                 .id(hit.getId())
                 .app(hit.getApp())
-                .url(hit.getUri())
+                .uri(hit.getUri())
                 .ip(hit.getIp())
                 .timestamp(hit.getTimestamp().format(formatter)).build();
     }
