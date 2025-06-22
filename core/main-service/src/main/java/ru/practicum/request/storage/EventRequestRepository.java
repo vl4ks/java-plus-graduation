@@ -14,10 +14,5 @@ public interface EventRequestRepository extends JpaRepository<EventRequest, Long
 
     EventRequest findByEventIdAndRequesterId(Long eventId, Long requesterId);
 
-    @Query("""
-                SELECT r
-                FROM EventRequest AS r
-                WHERE id IN ?1
-            """)
-    Collection<EventRequest> findById(Collection<Long> requestsIds);
+    Collection<EventRequest> findByIdIn(Collection<Long> requestsIds);
 }

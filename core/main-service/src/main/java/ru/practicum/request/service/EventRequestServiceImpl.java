@@ -74,7 +74,7 @@ public class EventRequestServiceImpl implements EventRequestService {
         validateEventForRequest(event);
 
         EventRequestStatusUpdateResult result = new EventRequestStatusUpdateResult();
-        final Collection<EventRequest> requests = eventRequestRepository.findById(requestsToUpdate.getRequestIds());
+        final Collection<EventRequest> requests = eventRequestRepository.findByIdIn(requestsToUpdate.getRequestIds());
         validateRequests(requests);
 
         switch (requestsToUpdate.getStatus()) {

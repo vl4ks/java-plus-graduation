@@ -3,6 +3,7 @@ package ru.practicum.event.service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ import java.util.stream.Collectors;
 @Service("eventServiceImpl")
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
-    private static final String APP_NAME = "main-service";
+
     private final StatClient statClient;
     private final UserService userService;
     private final CategoryService categoryService;
@@ -55,6 +56,9 @@ public class EventServiceImpl implements EventService {
     private final CategoryDtoMapper categoryDtoMapper;
     private final LocationDtoMapper locationDtoMapper;
     private final CategoryRepository categoryRepository;
+
+    @Value("${spring.application.name}")
+    private String appName;
 
     final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -301,7 +305,7 @@ public class EventServiceImpl implements EventService {
 
     private void saveView(HttpServletRequest request) {
         final NewEventViewDto viewDto = new NewEventViewDto().builder()
-                .app(APP_NAME)
+                .app(appName)
                 .uri(request.getRequestURI())
                 .ip(request.getRemoteAddr())
                 .timestamp(LocalDateTime.now().format(formatter))
