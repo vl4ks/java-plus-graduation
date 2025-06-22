@@ -39,13 +39,8 @@ public class AdminController {
     @PatchMapping("/{eventId}")
     public EventFullDto update(@Positive @PathVariable Long eventId, @RequestBody @Valid UpdateEventAdminRequest eventDto) {
         log.info("Пришел PATCH запрос /admin/events/{} с телом {}", eventId, eventDto);
-        try {
-            final EventFullDto event = eventService.updateByAdmin(eventId, eventDto);
-            log.info("Отправлен ответ PATCH /admin/events/{} с телом: {}", eventId, event);
-            return event;
-        } catch (Exception e) {
-            log.error("Ошибка при PATCH /admin/events/{}: {}", eventId, e.getMessage(), e);
-            throw e;
-        }
+        final EventFullDto event = eventService.updateByAdmin(eventId, eventDto);
+        log.info("Отправлен ответ PATCH /admin/events/{} с телом: {}", eventId, event);
+        return event;
     }
 }

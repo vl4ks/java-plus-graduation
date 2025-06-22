@@ -21,10 +21,7 @@ import ru.practicum.event.model.Event;
 import ru.practicum.event.model.State;
 import ru.practicum.event.model.StateAction;
 import ru.practicum.event.storage.EventRepository;
-import ru.practicum.exception.ConflictException;
-import ru.practicum.exception.ForbiddenException;
-import ru.practicum.exception.IncorrectRequestException;
-import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.*;
 import ru.practicum.location.dto.LocationDto;
 import ru.practicum.location.mapper.LocationDtoMapper;
 import ru.practicum.location.model.Location;
@@ -320,8 +317,8 @@ public class EventServiceImpl implements EventService {
         try {
             statClient.saveHit(hitDto);
             log.info("Просмотр успешно записан.");
-        } catch (Exception e) {
-            log.error("Ошибка при сохранении просмотра события: {}", e.getMessage(), e);
+        } catch (SaveStatsException e) {
+            log.error("Ошибка при сохранении статистики: {}", e.getMessage(), e);
         }
     }
 
@@ -329,14 +326,9 @@ public class EventServiceImpl implements EventService {
         final List<String> uris = List.of(
                 "/events/" + eventId
         );
-        try {
-            List<ResponseStatsDto> stats = statClient.getStats(start, end, uris, true);
-            return stats.stream()
-                    .mapToLong(ResponseStatsDto::getHits)
-                    .sum();
-        } catch (Exception e) {
-            log.error("Ошибка при получении просмотров: {}", e.getMessage(), e);
-            return 0L;
-        }
+        List<ResponseStatsDto> stats = statClient.getStats(start, end, uris, true);
+        return stats.stream()
+                .mapToLong(ResponseStatsDto::getHits)
+                .sum();
     }
 }
