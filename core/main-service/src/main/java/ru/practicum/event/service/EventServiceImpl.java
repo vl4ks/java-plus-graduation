@@ -314,12 +314,8 @@ public class EventServiceImpl implements EventService {
                 .ip(viewDto.getIp())
                 .timestamp(viewDto.getTimestamp())
                 .build();
-        try {
             statClient.saveHit(hitDto);
             log.info("Просмотр успешно записан.");
-        } catch (SaveStatsException e) {
-            log.error("Ошибка при сохранении статистики: {}", e.getMessage(), e);
-        }
     }
 
     private Long countViews(Long eventId, LocalDateTime start, LocalDateTime end) {
