@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@FeignClient(name = "stats-server")
+@FeignClient(name = "stats-server", path = "/")
 public interface StatClient {
 
     final String TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
@@ -20,7 +20,7 @@ public interface StatClient {
 
     @GetMapping("/stats")
     List<ResponseStatsDto> getStats(@RequestParam @DateTimeFormat(pattern = TIME_PATTERN) LocalDateTime start,
-                            @RequestParam @DateTimeFormat(pattern = TIME_PATTERN) LocalDateTime end,
-                            @RequestParam(defaultValue = "") List<String> uris,
-                            @RequestParam(defaultValue = "false") boolean unique);
+                                    @RequestParam @DateTimeFormat(pattern = TIME_PATTERN) LocalDateTime end,
+                                    @RequestParam(defaultValue = "") List<String> uris,
+                                    @RequestParam(defaultValue = "false") boolean unique);
 }

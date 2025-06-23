@@ -3,13 +3,12 @@ package ru.practicum.event.service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.ResponseHitDto;
 import ru.practicum.ResponseStatsDto;
-import ru.practicum.StatClient;
+import ru.practicum.StatClientService;
 import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.category.mapper.CategoryDtoMapper;
 import ru.practicum.category.model.Category;
@@ -43,7 +42,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
 
-    private final StatClient statClient;
+    private final StatClientService statClientService;
     private final UserService userService;
     private final CategoryService categoryService;
     private final LocationService locationService;
@@ -53,9 +52,6 @@ public class EventServiceImpl implements EventService {
     private final CategoryDtoMapper categoryDtoMapper;
     private final LocationDtoMapper locationDtoMapper;
     private final CategoryRepository categoryRepository;
-
-    @Value("${spring.application.name}")
-    private String appName;
 
     final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -301,28 +297,27 @@ public class EventServiceImpl implements EventService {
     }
 
     private void saveView(HttpServletRequest request) {
-        final NewEventViewDto viewDto = new NewEventViewDto().builder()
-                .app(appName)
+        final NewEventViewDto viewDto = NewEventViewDto.builder()
                 .uri(request.getRequestURI())
                 .ip(request.getRemoteAddr())
                 .timestamp(LocalDateTime.now().format(formatter))
                 .build();
 
         ResponseHitDto hitDto = ResponseHitDto.builder()
-                .app(viewDto.getApp())
                 .uri(viewDto.getUri())
                 .ip(viewDto.getIp())
                 .timestamp(viewDto.getTimestamp())
                 .build();
-            statClient.saveHit(hitDto);
-            log.info("Просмотр успешно записан.");
+
+        statClientService.saveHit(hitDto);
+        log.info("Просмотр успешно записан.");
     }
 
     private Long countViews(Long eventId, LocalDateTime start, LocalDateTime end) {
         final List<String> uris = List.of(
                 "/events/" + eventId
         );
-        List<ResponseStatsDto> stats = statClient.getStats(start, end, uris, true);
+        List<ResponseStatsDto> stats = statClientService.getStats(start, end, uris, true);
         return stats.stream()
                 .mapToLong(ResponseStatsDto::getHits)
                 .sum();
