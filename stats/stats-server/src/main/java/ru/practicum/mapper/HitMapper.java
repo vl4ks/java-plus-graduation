@@ -3,7 +3,6 @@ package ru.practicum.mapper;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.practicum.CreateHitDto;
-import ru.practicum.ResponseHitDto;
 import ru.practicum.model.Hit;
 
 import java.time.LocalDateTime;
