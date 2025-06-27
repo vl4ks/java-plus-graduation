@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS events (
     state VARCHAR(50) NOT NULL,
     created_on TIMESTAMP NOT NULL,
     published_on TIMESTAMP,
-    FOREIGN KEY (initiator_id) REFERENCES users(id) ON DELETE CASCADE,
+    views   BIGINT,
     FOREIGN KEY (category_id) REFERENCES categories(id),
     FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE CASCADE
 );

@@ -10,13 +10,17 @@ public interface EventService {
 
     EventFullDto create(Long userId, NewEventDto eventDto);
 
-    Collection<EventShortDto> findAllByPublic(String text, List<Long> categories, Boolean paid, String rangeStart, String rangeEnd, Boolean onlyAvailable, String sort, Integer from, Integer size, HttpServletRequest request);
+    Collection<EventShortDto> findAllByPublic(String text, List<Long> categories, Boolean paid, String rangeStart,
+                                              String rangeEnd, Boolean onlyAvailable, String sort, Integer from, Integer size, HttpServletRequest request);
 
     Collection<EventShortDto> findAllByPrivate(Long userId, Integer from, Integer size);
 
     Collection<EventFullDto> findAllByAdmin(List<Long> users, List<String> states, List<Long> categories, String rangeStart, String rangeEnd, Integer from, Integer size);
 
-    EventFullDto findById(Long userId, Long eventId, Boolean isPublic, HttpServletRequest request);
+    //    EventFullDto findById(Long userId, Long eventId, Boolean isPublic, HttpServletRequest request);
+    EventFullDto findById(Long eventId, HttpServletRequest request);
+
+    EventFullDto findEvent(Long eventId, Long userId);
 
     EventFullDto updateByPrivate(Long userId, Long eventId, UpdateEventUserRequest eventDto);
 

@@ -5,13 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.event.mapper.EventMapper;
-import ru.practicum.event.model.Event;
-import ru.practicum.event.storage.EventRepository;
+import ru.practicum.dto.CompilationDto;
+import ru.practicum.dto.NewCompilationDto;
+import ru.practicum.dto.UpdateCompilationRequest;
+import ru.practicum.event.mapper.CompilationMapper;
+import ru.practicum.event.model.Compilation;
+import ru.practicum.event.storage.CompilationRepository;
 import ru.practicum.exception.NotFoundException;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -19,29 +21,14 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compilationRepository;
-    private final EventRepository eventRepository;
 
-    @Transactional
     @Override
     public CompilationDto addCompilation(NewCompilationDto newCompilationDto) {
         log.info("Добавление подборки {}", newCompilationDto.toString());
-        Compilation compilation = CompilationMapper.toCompilation(newCompilationDto,
-                Collections.emptyList());
+        Compilation compilation = CompilationMapper.INSTANCE.getCompilation(newCompilationDto);
+        compilation = compilationRepository.save(compilation);
 
-        compilation.setPinned(Optional.ofNullable(compilation.getPinned()).orElse(false));
-
-        Set<Long> compilationEventIds = Optional.ofNullable(newCompilationDto.getEvents())
-                .orElse(Collections.emptySet());
-        List<Event> events = eventRepository.findAllByIdIn(new ArrayList<>(compilationEventIds));
-        compilation.setEvents(new HashSet<>(events));
-
-        Compilation savedCompilation = compilationRepository.save(compilation);
-        log.info("Подборка добавлена: {}", savedCompilation);
-        List<EventShortDto> eventShortDtos = events.stream()
-                .map(EventMapper::toEventShortDto)
-                .collect(Collectors.toList());
-
-        return CompilationMapper.toCompilationDto(savedCompilation, eventShortDtos);
+        return CompilationMapper.INSTANCE.getCompilationDto(compilation);
 
     }
 
@@ -50,24 +37,8 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest updateCompilationRequest) {
         Compilation compilation = validateCompilation(compId);
         log.info("Обновление подборки c {}, на {}", updateCompilationRequest.toString(), compilation.toString());
-        if (updateCompilationRequest.getEvents() != null) {
-            Set<Long> eventIds = updateCompilationRequest.getEvents();
-            List<Event> events = eventRepository.findAllByIdIn(new ArrayList<>(eventIds));
-            compilation.setEvents(new HashSet<>(events));
-            log.trace("Events = {}", compilation.getEvents());
-        }
-
-        compilation.setPinned(Optional.ofNullable(updateCompilationRequest.getPinned()).orElse(false));
-        log.trace("Pinned = {}", compilation.getPinned());
-
-        compilation.setTitle(Optional.ofNullable(updateCompilationRequest.getTitle()).orElse(compilation.getTitle()));
-        Compilation updatedCompilation = compilationRepository.save(compilation);
-        log.info("Подборка обновлена: {}", compilation);
-        List<EventShortDto> eventShortDtos = updatedCompilation.getEvents().stream()
-                .map(EventMapper::toEventShortDto)
-                .collect(Collectors.toList());
-
-        return CompilationMapper.toCompilationDto(updatedCompilation, eventShortDtos);
+        CompilationMapper.INSTANCE.update(compilation, updateCompilationRequest);
+        return CompilationMapper.INSTANCE.getCompilationDto(compilation);
     }
 
     @Transactional
@@ -83,26 +54,9 @@ public class CompilationServiceImpl implements CompilationService {
     public List<CompilationDto> getAllCompilations(Integer from, Integer size, Boolean pinned) {
         log.info("Получение всех подборок с from={}, size={}, pinned={}", from, size, pinned);
         PageRequest pageRequest = PageRequest.of(from, size);
-        List<Compilation> compilations;
-        if (pinned != null) {
-            log.info("Получение всех подборок с pinned: {}", pinned);
-            compilations = compilationRepository.findAllByPinned(pinned, pageRequest);
-            log.info("Получены подборки с pinned={}: {}", pinned, compilations);
-        } else {
-            log.info("Получение всех подборок без фильтрации по pinned");
-            compilations = compilationRepository.findAll(pageRequest).getContent();
-            log.info("Получены все подборки: {}", compilations);
-
-        }
-        return compilations.stream()
-                .map(compilation -> {
-                    List<EventShortDto> eventShortDtos = compilation.getEvents().stream()
-                            .map(EventMapper::toEventShortDto)
-                            .collect(Collectors.toList());
-
-                    return CompilationMapper.toCompilationDto(compilation, eventShortDtos);
-                })
-                .collect(Collectors.toList());
+        return compilationRepository.findAllByPinned(pinned, pageRequest).stream()
+                .map(CompilationMapper.INSTANCE::getCompilationDto)
+                .toList();
     }
 
     @Override
@@ -111,11 +65,7 @@ public class CompilationServiceImpl implements CompilationService {
         Compilation compilation = validateCompilation(compId);
         log.info("Подборка найдена: {}", compilation);
 
-        List<EventShortDto> eventShortDtos = compilation.getEvents().stream()
-                .map(EventMapper::toEventShortDto)
-                .collect(Collectors.toList());
-
-        return CompilationMapper.toCompilationDto(compilation, eventShortDtos);
+        return CompilationMapper.INSTANCE.getCompilationDto(compilation);
     }
 
     private Compilation validateCompilation(Long compId) {

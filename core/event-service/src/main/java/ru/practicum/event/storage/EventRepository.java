@@ -3,10 +3,12 @@ package ru.practicum.event.storage;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import ru.practicum.dto.State;
 import ru.practicum.event.model.Event;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findAllByInitiatorId(Long initiatorId, Pageable pageable);
@@ -59,6 +61,22 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         nativeQuery = true
     )
     void updateConfirmedRequests(Long eventId, Long confirmedRequests);
+
+    @Query("""
+            SELECT e
+            FROM Event as e
+            WHERE e.id = :eventId
+            AND e.initiator = :userId
+            """)
+    Optional<Event> findByIdAndUserId(Long eventId, long userId);
+
+    @Query("""
+            SELECT e
+            FROM Event as e
+            WHERE e.id = :eventId
+            AND e.state = :state
+            """)
+    Optional<Event> findByIdAndStatus(Long eventId, State state);
 
     List<Event> findAllByIdIn(List<Long> eventIds);
 

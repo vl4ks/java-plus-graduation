@@ -19,15 +19,6 @@ public interface EventMapper {
 
     EventFullDto getEventDto(Event event);
 
-    EventFullDto toEventFullDto(Event event, CategoryDto categoryDto, LocationDto locationDto, UserShortDto initiatorDto, Long views);
-
     EventShortDto getEventShortDto(Event event);
 
-    EventShortDto toEventShortDto(Event event, CategoryDto categoryDto, UserShortDto initiatorDto, Long views);
-
-    Event fromNewEventDto(NewEventDto newEventDto, Category category, Location location, Long initiatorId);
-
-    void updateFromDto(Event event, UpdateEventUserRequest eventDto, Category category, Location location);
-
-    void updateFromDto(Event event, UpdateEventAdminRequest eventDto, Category category, Location location);
 }

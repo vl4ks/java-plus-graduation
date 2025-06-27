@@ -1,34 +1,20 @@
 package ru.practicum.mapper;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import ru.practicum.CreateHitDto;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
+import ru.practicum.dto.ResponseHitDto;
 import ru.practicum.model.Hit;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class HitMapper {
+@Mapper
+public interface HitMapper {
 
-    public static Hit mapToHit(CreateHitDto createHitDto) {
-        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    HitMapper INSTANCE = Mappers.getMapper(HitMapper.class);
 
-        return Hit.builder()
-                .app(createHitDto.getApp())
-                .uri(createHitDto.getUri())
-                .ip(createHitDto.getIp())
-                .timestamp(LocalDateTime.parse(createHitDto.getTimestamp(), formatter)).build();
-    }
+    @Mapping(target = "timestamp", source = "timestamp")
+    Hit mapToHit(ResponseHitDto responseHitDto);
 
-    public static ResponseHitDto mapToResponseDto(Hit hit) {
-        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-        return ResponseHitDto.builder()
-                .id(hit.getId())
-                .app(hit.getApp())
-                .uri(hit.getUri())
-                .ip(hit.getIp())
-                .timestamp(hit.getTimestamp().format(formatter)).build();
-    }
+    @Mapping(target = "timestamp", source = "timestamp")
+    ResponseHitDto mapToResponseDto(Hit hit);
 }

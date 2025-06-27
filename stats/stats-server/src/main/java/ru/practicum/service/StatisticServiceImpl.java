@@ -3,7 +3,8 @@ package ru.practicum.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.CreateHitDto;
+import ru.practicum.dto.ResponseHitDto;
+import ru.practicum.dto.ResponseStatsDto;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.mapper.HitMapper;
 import ru.practicum.model.Hit;
@@ -21,10 +22,10 @@ public class StatisticServiceImpl implements StatisticService {
     private final StatisticRepository statisticRepository;
 
     @Override
-    public ResponseHitDto create(CreateHitDto createHitDto) {
-        final Hit hit = HitMapper.mapToHit(createHitDto);
-        final Hit createdHit = statisticRepository.save(hit);
-        return HitMapper.mapToResponseDto(createdHit);
+    public ResponseHitDto create(ResponseHitDto createHitDto) {
+        Hit hit = statisticRepository.save(HitMapper.INSTANCE.mapToHit(createHitDto));
+
+        return HitMapper.INSTANCE.mapToResponseDto(hit);
     }
 
     @Override

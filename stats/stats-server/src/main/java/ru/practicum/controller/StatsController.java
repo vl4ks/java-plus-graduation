@@ -5,7 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
-import ru.practicum.CreateHitDto;
+import ru.practicum.dto.ResponseHitDto;
+import ru.practicum.dto.ResponseStatsDto;
 import ru.practicum.service.StatisticService;
 
 import java.util.List;
@@ -28,8 +29,8 @@ public class StatsController {
 
     @PostMapping("/hit")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseHitDto createHit(@RequestBody @Valid CreateHitDto createHitDto) {
+    public ResponseHitDto createHit(@RequestBody @Valid ResponseHitDto responseHitDto) {
         log.info("Сохранение информации об обращении к эндпоинту");
-        return statisticService.create(createHitDto);
+        return statisticService.create(responseHitDto);
     }
 }
