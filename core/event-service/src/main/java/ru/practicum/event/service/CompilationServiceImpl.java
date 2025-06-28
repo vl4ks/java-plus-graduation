@@ -6,11 +6,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.CompilationDto;
+import ru.practicum.dto.EventShortDto;
 import ru.practicum.dto.NewCompilationDto;
 import ru.practicum.dto.UpdateCompilationRequest;
 import ru.practicum.event.mapper.CompilationMapper;
 import ru.practicum.event.model.Compilation;
+import ru.practicum.event.model.Event;
 import ru.practicum.event.storage.CompilationRepository;
+import ru.practicum.event.storage.EventRepository;
 import ru.practicum.exception.NotFoundException;
 
 import java.util.*;
@@ -18,17 +21,18 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compilationRepository;
+    private final EventRepository eventRepository;
+    private final CompilationMapper compilationMapper;
 
     @Override
     public CompilationDto addCompilation(NewCompilationDto newCompilationDto) {
         log.info("Добавление подборки {}", newCompilationDto.toString());
-        Compilation compilation = CompilationMapper.INSTANCE.getCompilation(newCompilationDto);
+        Compilation compilation = compilationMapper.getCompilation(newCompilationDto, eventRepository);
         compilation = compilationRepository.save(compilation);
 
-        return CompilationMapper.INSTANCE.getCompilationDto(compilation);
+        return compilationMapper.getCompilationDto(compilation);
 
     }
 
@@ -37,7 +41,7 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest updateCompilationRequest) {
         Compilation compilation = validateCompilation(compId);
         log.info("Обновление подборки c {}, на {}", updateCompilationRequest.toString(), compilation.toString());
-        CompilationMapper.INSTANCE.update(compilation, updateCompilationRequest);
+        CompilationMapper.INSTANCE.update(compilation, updateCompilationRequest, eventRepository);
         return CompilationMapper.INSTANCE.getCompilationDto(compilation);
     }
 

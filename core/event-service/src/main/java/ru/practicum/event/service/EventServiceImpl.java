@@ -228,7 +228,7 @@ public class EventServiceImpl implements EventService {
         final NewEventViewDto viewDto = NewEventViewDto.builder()
                 .uri(request.getRequestURI())
                 .ip(request.getRemoteAddr())
-                .timestamp(LocalDateTime.now().format(formatter))
+                .timestamp(LocalDateTime.now())
                 .build();
 
         ResponseHitDto hitDto = ResponseHitDto.builder()

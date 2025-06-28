@@ -16,10 +16,10 @@ public interface EventUpdater {
     EventUpdater INSTANCE = Mappers.getMapper(EventUpdater.class);
 
     @Mapping(target = "state", source = "stateAction")
-    void update(@MappingTarget Event baseEvent, UpdateEventUserRequest updateEventUserRequest);
+    void update(@MappingTarget Event event, UpdateEventUserRequest updateEventUserRequest);
 
     @Mapping(target = "state", source = "stateAction")
-    void update(@MappingTarget Event baseEvent, UpdateEventAdminRequest updateEventAdminRequest);
+    void update(@MappingTarget Event event, UpdateEventAdminRequest updateEventAdminRequest);
 
     @ValueMapping(target = "PENDING", source = "SEND_TO_REVIEW")
     @ValueMapping(target = "CANCELED", source = "CANCEL_REVIEW")

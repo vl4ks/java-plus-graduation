@@ -14,7 +14,7 @@ public class UpdateEventUserRequest {
     @Size(min = 20, max = 2000, message = "Name should be from 20 to 2000 symbols")
     private String annotation;
 
-    private Long category;
+    private CategoryDto category;
 
     @Size(min = 20, max = 7000, message = "Name should be from 20 to 7000 symbols")
     private String description;

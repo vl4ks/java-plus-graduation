@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 
 @Data
 @Builder
@@ -26,5 +28,5 @@ public class ResponseHitDto {
     @NotNull
     @JsonProperty("timestamp")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private String timestamp;
+    private LocalDateTime timestamp;
 }

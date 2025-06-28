@@ -20,8 +20,8 @@ public interface StatClient {
     String saveHit(@RequestBody ResponseHitDto requestBody);
 
     @GetMapping("/stats")
-    List<ResponseStatsDto> getStats(@RequestParam @DateTimeFormat(pattern = TIME_PATTERN) LocalDateTime start,
-                                    @RequestParam @DateTimeFormat(pattern = TIME_PATTERN) LocalDateTime end,
+    List<ResponseStatsDto> getStats(@RequestParam LocalDateTime start,
+                                    @RequestParam LocalDateTime end,
                                     @RequestParam(defaultValue = "") List<String> uris,
                                     @RequestParam(defaultValue = "false") boolean unique);
 }

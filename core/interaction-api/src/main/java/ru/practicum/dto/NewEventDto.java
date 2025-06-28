@@ -18,7 +18,7 @@ public class NewEventDto {
     private String annotation;
 
     @NotNull(message = "Category can't be empty")
-    private Long category;
+    private CategoryDto category;
 
     @NotBlank(message = "Description can't be empty")
     @Size(min = 20, max = 7000, message = "Name should be from 20 to 7000 symbols")

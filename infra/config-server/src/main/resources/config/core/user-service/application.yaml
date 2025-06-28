@@ -11,9 +11,9 @@ spring:
     show-sql: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:6433/ewmdb
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://localhost:6433/ewm-main
+    username: root
+    password: root
   sql:
     init:
       mode: always

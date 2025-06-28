@@ -21,8 +21,7 @@ public class Event {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "initiator_id")
+    @Column(name = "initiator_id")
     private Long initiatorId;
 
     @Column(name = "title", length = 120)
