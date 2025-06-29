@@ -11,13 +11,13 @@ import java.util.Optional;
 
 @FeignClient(name = "event-service")
 public interface EventClient {
-    @GetMapping("/api/v2/events/{eventId}")
-    Optional<EventFullDto> findEvent(@PathVariable long eventId);
+    @GetMapping("/events/{eventId}")
+    Optional<EventFullDto> findEvent(@PathVariable Long eventId);
 
-    @PutMapping("/api/v2/events/{eventId}/confirmed")
-    void setConfirmed(@PathVariable long eventId,
-                      @RequestBody long requests);
+    @PutMapping("/events/{eventId}/confirmed")
+    void setConfirmed(@PathVariable Long eventId,
+                      @RequestBody Long requests);
 
-    @GetMapping("/api/v2/events/{eventId}")
-    Optional<EventFullDto> findById(@PathVariable long eventId);
+    @GetMapping("/events/{eventId}")
+    Optional<EventFullDto> findById(@PathVariable Long eventId);
 }
