@@ -11,7 +11,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/compilations")
+@RequestMapping("/compilations")
 public class PublicCompilationController {
     private final CompilationService compilationService;
 

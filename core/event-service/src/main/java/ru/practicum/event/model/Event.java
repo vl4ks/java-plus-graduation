@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
     @Column(name = "initiator_id")
@@ -37,7 +36,7 @@ public class Event {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @ManyToOne(cascade = { CascadeType.ALL })
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location location;
 

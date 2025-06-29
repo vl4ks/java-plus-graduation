@@ -13,7 +13,7 @@ import java.util.Collection;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/categories")
+@RequestMapping("/categories")
 public class PublicCategoryController {
     private final CategoryService categoryService;
 

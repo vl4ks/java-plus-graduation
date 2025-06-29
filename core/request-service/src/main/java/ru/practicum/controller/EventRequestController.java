@@ -14,7 +14,7 @@ import java.util.Collection;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/users/{userId}")
+@RequestMapping("/users/{userId}")
 public class EventRequestController {
     private final EventRequestService eventRequestService;
 

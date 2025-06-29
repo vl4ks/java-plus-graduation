@@ -3,7 +3,6 @@ package ru.practicum.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import ru.practicum.dto.ResponseHitDto;
 import ru.practicum.dto.ResponseStatsDto;
 import ru.practicum.exception.ValidationException;
@@ -13,16 +12,12 @@ import ru.practicum.reposirory.StatisticRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Service
+@Service("statisticServiceImpl")
 @RequiredArgsConstructor
 @Slf4j
 public class StatisticServiceImpl implements StatisticService {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final StatisticRepository statisticRepository;
 

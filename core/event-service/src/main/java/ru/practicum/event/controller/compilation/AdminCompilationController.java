@@ -13,7 +13,7 @@ import ru.practicum.event.service.CompilationService;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/admin/compilations")
+@RequestMapping("/admin/compilations")
 public class AdminCompilationController {
     private final CompilationService compilationService;
 

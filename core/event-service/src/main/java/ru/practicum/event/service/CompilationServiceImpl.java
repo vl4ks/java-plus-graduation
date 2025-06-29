@@ -6,12 +6,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.CompilationDto;
-import ru.practicum.dto.EventShortDto;
 import ru.practicum.dto.NewCompilationDto;
 import ru.practicum.dto.UpdateCompilationRequest;
 import ru.practicum.event.mapper.CompilationMapper;
 import ru.practicum.event.model.Compilation;
-import ru.practicum.event.model.Event;
 import ru.practicum.event.storage.CompilationRepository;
 import ru.practicum.event.storage.EventRepository;
 import ru.practicum.exception.NotFoundException;
@@ -19,7 +17,7 @@ import ru.practicum.exception.NotFoundException;
 import java.util.*;
 
 @Slf4j
-@Service
+@Service("compilationServiceImpl")
 @RequiredArgsConstructor
 public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compilationRepository;

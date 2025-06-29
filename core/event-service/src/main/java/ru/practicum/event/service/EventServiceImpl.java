@@ -57,11 +57,10 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Collection<EventShortDto> findAllByPublic(String text, List<Long> categories, Boolean paid, String rangeStart,
-                                                     String rangeEnd, Boolean onlyAvailable, String sort, Integer from,
+    public Collection<EventShortDto> findAllByPublic(String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart,
+                                                     LocalDateTime rangeEnd, Boolean onlyAvailable, String sort, Integer from,
                                                      Integer size, HttpServletRequest request) {
-        if (rangeStart != null && rangeEnd != null && LocalDateTime.parse(rangeStart, formatter)
-                .isAfter(LocalDateTime.parse(rangeEnd, formatter))) {
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
             throw new IncorrectRequestException("RangeStart is after Range End");
         }
         if (sort != null && !sort.equals("EVENT_DATE") && !sort.equals("VIEWS")) {
@@ -71,8 +70,8 @@ public class EventServiceImpl implements EventService {
 
         final Collection<Event> events = eventRepository.findAllByPublic(
                 text, categories, paid,
-                rangeStart == null ? null : LocalDateTime.parse(rangeStart, formatter),
-                rangeEnd == null ? null : LocalDateTime.parse(rangeEnd, formatter),
+                rangeStart == null ? null : rangeStart,
+                rangeEnd == null ? null : rangeEnd,
                 onlyAvailable, (Pageable) PageRequest.of(from, size));
 
         return events.stream()
@@ -117,8 +116,15 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto findById(Long eventId, HttpServletRequest request) {
-        Event event = eventRepository.findByIdAndStatus(eventId, State.PUBLISHED)
-                .orElseThrow(() -> new NotFoundException("published event is not found with id = " + eventId));
+        eventRepository.findAll().forEach(e -> log.info("EVENT: id={}, state={}", e.getId(), e.getState()));
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("event is not found with id = " + eventId));
+
+        if (event.getState() != State.PUBLISHED) {
+            throw new NotFoundException("event is not published with id = " + eventId);
+        }
+
         saveView(request);
 
         event.setViews(countViews(eventId,event.getCreatedOn(), LocalDateTime.now()));
@@ -232,6 +238,7 @@ public class EventServiceImpl implements EventService {
                 .build();
 
         ResponseHitDto hitDto = ResponseHitDto.builder()
+                .app("event-service")
                 .uri(viewDto.getUri())
                 .ip(viewDto.getIp())
                 .timestamp(viewDto.getTimestamp())

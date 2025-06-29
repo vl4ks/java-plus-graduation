@@ -13,7 +13,7 @@ import ru.practicum.event.service.CategoryService;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/admin/categories")
+@RequestMapping("/admin/categories")
 public class AdminCategoryController {
     private final CategoryService categoryService;
 
