@@ -3,6 +3,7 @@ package ru.practicum.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.practicum.dto.ResponseHitDto;
 import ru.practicum.dto.ResponseStatsDto;
 import ru.practicum.exception.ValidationException;
@@ -10,7 +11,10 @@ import ru.practicum.mapper.HitMapper;
 import ru.practicum.model.Hit;
 import ru.practicum.reposirory.StatisticRepository;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class StatisticServiceImpl implements StatisticService {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final StatisticRepository statisticRepository;
 
@@ -29,28 +34,22 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public List<ResponseStatsDto> get(String start, String end, List<String> uris, Boolean unique) {
+    public List<ResponseStatsDto> get(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
         if (start == null || end == null) {
             throw new ValidationException("You need to chose start and end dates.");
         }
 
-        if (start.compareTo(end) > 0) {
+        if (start.isAfter(end)) {
             throw new ValidationException("Дата начала должна быть раньше даты окончания.");
         }
-
-        final List<StatisticRepository.ResponseStatsDto> hits;
-        if (uris.isEmpty()) {
-            hits = statisticRepository.getByAllUris(start.replaceFirst("%20", " "), end.replaceFirst("%20", " "));
+        if (!uris.isEmpty() && unique) {
+            return statisticRepository.getStatsWithUrisUnique(start, end, uris);
+        } else if (uris.isEmpty() && unique) {
+            return statisticRepository.getStatsWithoutUrisUnique(start, end);
+        } else if (!uris.isEmpty()) {
+            return statisticRepository.getStatsWithUrisNotUnique(start, end, uris);
         } else {
-            hits = statisticRepository.getByUris(start.replaceFirst("%20", " "), end.replaceFirst("%20", " "), uris);
+            return statisticRepository.getStatsWithoutUrisNotUnique(start, end);
         }
-        return hits.stream()
-                .map(stats -> ResponseStatsDto.builder()
-                        .app(stats.getApp())
-                        .uri(stats.getUri())
-                        .hits(unique ? stats.getUniqHits() : stats.getHits())
-                        .build()
-                )
-                .collect(Collectors.toCollection(ArrayList::new));
     }
 }
