@@ -11,8 +11,6 @@ import java.util.Optional;
 
 @FeignClient(name = "event-service")
 public interface EventClient {
-    @GetMapping("/events/{eventId}")
-    Optional<EventFullDto> findEvent(@PathVariable Long eventId);
 
     @PutMapping("/events/{eventId}/confirmed")
     void setConfirmed(@PathVariable Long eventId,

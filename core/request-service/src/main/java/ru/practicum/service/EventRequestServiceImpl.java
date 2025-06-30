@@ -2,6 +2,7 @@ package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.clients.EventClient;
 import ru.practicum.dto.*;
 import ru.practicum.exception.ConflictException;
@@ -23,17 +24,18 @@ public class EventRequestServiceImpl implements EventRequestService {
     private final EventRequestMapper eventRequestMapper;
     private final EventClient eventClient;
 
+    @Transactional
     @Override
     public ParticipationRequestDto create(Long userId, Long eventId) {
         EventFullDto event = eventClient.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " not found"));
+                .orElseThrow(() -> new ConflictException("Event with id=" + eventId + " not found"));
 
         EventRequest foundOldRequest = eventRequestRepository.findByEventIdAndRequesterId(eventId, userId);
         if (foundOldRequest != null) {
             throw new ConflictException("Trying to create already exist request");
         }
 
-        if (event.getInitiator().getId().equals(userId)) {
+        if (event.getInitiator().equals(userId)) {
             throw new ConflictException("Initiator of event can't be the same with requester");
         }
         validateEventForRequest(event);
@@ -63,7 +65,7 @@ public class EventRequestServiceImpl implements EventRequestService {
                 .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " not found"));
 
 
-        if (!event.getInitiator().getId().equals(userId)) {
+        if (!event.getInitiator().equals(userId)) {
             throw new ConflictException("Not initiator of event can't be change status of requests");
         }
         validateEventForRequest(event);
@@ -111,7 +113,7 @@ public class EventRequestServiceImpl implements EventRequestService {
         EventFullDto event = eventClient.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
 
-        if (!event.getInitiator().getId().equals(eventInitiatorId)) {
+        if (!event.getInitiator().equals(eventInitiatorId)) {
             throw new ConflictException("User with id=" + eventInitiatorId + " is not the initiator of event with id=" + eventId);
         }
 
