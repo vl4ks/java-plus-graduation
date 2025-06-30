@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.clients.StatClient;
 import ru.practicum.dto.*;
-import ru.practicum.mapper.CategoryMapper;
-import ru.practicum.mapper.EventMapper;
-import ru.practicum.mapper.EventUpdater;
+import ru.practicum.mapper.*;
+import ru.practicum.model.Category;
 import ru.practicum.model.Event;
 import ru.practicum.model.Location;
+import ru.practicum.storage.CategoryRepository;
 import ru.practicum.storage.EventRepository;
 import ru.practicum.storage.LocationRepository;
 import ru.practicum.exception.ConflictException;
@@ -22,11 +22,12 @@ import ru.practicum.exception.IncorrectRequestException;
 import ru.practicum.exception.NotFoundException;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static ru.practicum.DateTimeFormat.DATE_TIME_FORMATTER;
 
 @Slf4j
 @Service("eventServiceImpl")
@@ -36,24 +37,30 @@ public class EventServiceImpl implements EventService {
     private final StatClient statClient;
     private final EventRepository eventRepository;
     private final CategoryMapper categoryMapper;
+    private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
-
-    final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final EventDtoMapper eventMapper;
+    private final LocationMapper locationMapper;
 
     @Override
     public EventFullDto create(Long userId, NewEventDto eventDto) {
         validateEventDate(eventDto.getEventDate());
 
-        Event event = EventMapper.INSTANCE.getEvent(eventDto);
+        Category category = categoryRepository.findById(eventDto.getCategory())
+                .orElseThrow(() -> new NotFoundException("Category not found with id: " + eventDto.getCategory()));
 
-        Location location = locationRepository.save(event.getLocation());
+        Event event = eventMapper.toEvent(eventDto, category);
+
+        Location location = locationRepository.save(locationMapper.toLocation(eventDto.getLocation()));
 
         event.setInitiatorId(userId);
         event.setState(State.PENDING);
         event.setCreatedOn(LocalDateTime.now());
         event.setLocation(location);
-
-        return EventMapper.INSTANCE.getEventDto(eventRepository.save(event));
+        if (event.getConfirmedRequests() == null) {
+            event.setConfirmedRequests(0L);
+        }
+        return eventMapper.mapToFullDto(eventRepository.save(event));
     }
 
     @Override
@@ -76,7 +83,7 @@ public class EventServiceImpl implements EventService {
 
         return events.stream()
                 .map(event -> {
-                    EventShortDto dto = EventMapper.INSTANCE.getEventShortDto(event);
+                    EventShortDto dto = eventMapper.mapToShortDto(event);
                     dto.setCategory(categoryMapper.toCategoryDto(event.getCategory()));
                     dto.setInitiator(event.getInitiatorId());
                     dto.setViews(countViews(event.getId(), event.getCreatedOn(), LocalDateTime.now()));
@@ -91,24 +98,24 @@ public class EventServiceImpl implements EventService {
         Pageable pageable = PageRequest.of(from, size);
 
         return eventRepository.findAllByInitiatorId(userId, pageable).stream()
-                .map(EventMapper.INSTANCE::getEventShortDto)
+                .map(eventMapper::mapToShortDto)
                 .toList();
     }
 
     @Override
     public Collection<EventFullDto> findAllByAdmin(List<Long> users, List<String> states, List<Long> categories, String rangeStart, String rangeEnd, Integer from, Integer size) {
         final Collection<Event> events = eventRepository.findAllByAdmin(users, states, categories,
-                rangeStart == null ? null : LocalDateTime.parse(rangeStart, formatter),
-                rangeEnd == null ? null : LocalDateTime.parse(rangeEnd, formatter),
+                rangeStart == null ? null : LocalDateTime.parse(rangeStart, DATE_TIME_FORMATTER),
+                rangeEnd == null ? null : LocalDateTime.parse(rangeEnd, DATE_TIME_FORMATTER),
                 (Pageable) PageRequest.of(from, size));
         return events.stream()
-                .map(EventMapper.INSTANCE::getEventDto)
+                .map(eventMapper::mapToFullDto)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Override
     public EventFullDto findEvent(Long eventId, Long userId) {
-        return EventMapper.INSTANCE.getEventDto(
+        return eventMapper.mapToFullDto(
                 eventRepository.findByIdAndUserId(eventId, userId)
                         .orElseThrow(() -> new NotFoundException("event is not found with id = " + eventId))
         );
@@ -129,7 +136,7 @@ public class EventServiceImpl implements EventService {
 
         event.setViews(countViews(eventId,event.getCreatedOn(), LocalDateTime.now()));
         eventRepository.save(event);
-        return EventMapper.INSTANCE.getEventDto(event);
+        return eventMapper.mapToFullDto(event);
     }
 
     @Override
@@ -139,9 +146,15 @@ public class EventServiceImpl implements EventService {
         validateEventDate(eventDto.getEventDate());
         validateStatusForPrivate(event.getState(), eventDto.getStateAction());
 
-        EventUpdater.INSTANCE.update(event, eventDto);
+        Category category = null;
+        if (eventDto.getCategory() != null) {
+            category = categoryRepository.findById(eventDto.getCategory())
+                    .orElseThrow(() -> new NotFoundException("Category not found with id: " + eventDto.getCategory()));
+        }
 
-        return EventMapper.INSTANCE.getEventDto(event);
+        eventMapper.updateEventFromUserRequest(event, eventDto, category);
+
+        return eventMapper.mapToFullDto(event);
     }
 
     @Override
@@ -162,14 +175,20 @@ public class EventServiceImpl implements EventService {
             event.setPublishedOn(LocalDateTime.now());
         }
 
-        EventUpdater.INSTANCE.update(event, eventDto);
+        Category category = null;
+        if (eventDto.getCategory() != null) {
+            category = categoryRepository.findById(eventDto.getCategory())
+                    .orElseThrow(() -> new NotFoundException("Category not found with id: " + eventDto.getCategory()));
+        }
+
+        eventMapper.updateEventFromAdminRequest(event, eventDto, category);
 
         if (event.getState() == State.PUBLISHED) {
             event.setPublishedOn(LocalDateTime.now());
             event.setConfirmedRequests(0L);
             event.setViews(0L);
         }
-        return EventMapper.INSTANCE.getEventDto(event);
+        return eventMapper.mapToFullDto(event);
     }
 
     @Override

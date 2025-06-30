@@ -1,16 +1,27 @@
 package ru.practicum.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.ReportingPolicy;
-import org.mapstruct.factory.Mappers;
+import org.springframework.stereotype.Component;
 import ru.practicum.dto.LocationDto;
 import ru.practicum.model.Location;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface LocationMapper {
-    LocationMapper INSTANCE = Mappers.getMapper(LocationMapper.class);
+@Component
+public class LocationMapper {
+    public Location toLocation(LocationDto locationDto) {
+        if (locationDto == null) {
+            return null;
+        }
 
-    LocationDto toLocationDto(Location location);
+        Location location = new Location();
+        location.setLat(locationDto.getLat());
+        location.setLon(locationDto.getLon());
+        return location;
+    }
 
-    Location fromLocationDto(LocationDto locationDto);
+    public LocationDto toLocationDto(Location location) {
+        if (location == null) {
+            return null;
+        }
+
+        return new LocationDto(location.getLat(), location.getLon());
+    }
 }

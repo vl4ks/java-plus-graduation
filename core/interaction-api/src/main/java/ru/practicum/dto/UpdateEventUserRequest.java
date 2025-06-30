@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import static ru.practicum.DateTimeFormat.DATE_PATTERN;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,12 +20,12 @@ public class UpdateEventUserRequest {
     @Size(min = 20, max = 2000, message = "Name should be from 20 to 2000 symbols")
     private String annotation;
 
-    private CategoryDto category;
+    private Long category;
 
     @Size(min = 20, max = 7000, message = "Name should be from 20 to 7000 symbols")
     private String description;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = DATE_PATTERN)
     private LocalDateTime eventDate;
 
     @Valid

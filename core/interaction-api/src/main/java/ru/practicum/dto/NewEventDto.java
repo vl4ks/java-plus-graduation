@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import static ru.practicum.DateTimeFormat.DATE_PATTERN;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,14 +24,14 @@ public class NewEventDto {
     private String annotation;
 
     @NotNull(message = "Category can't be empty")
-    private CategoryDto category;
+    private Long category;
 
     @NotBlank(message = "Description can't be empty")
     @Size(min = 20, max = 7000, message = "Name should be from 20 to 7000 symbols")
     private String description;
 
-    @NotBlank(message = "Date of event can't be empty")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+
+    @JsonFormat(pattern = DATE_PATTERN)
     private LocalDateTime eventDate;
 
     @NotNull(message = "Location can't be empty")
