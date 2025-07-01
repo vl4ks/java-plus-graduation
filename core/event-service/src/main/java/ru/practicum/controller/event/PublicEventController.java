@@ -14,12 +14,13 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
+import static ru.practicum.DateTimeFormat.DATE_PATTERN;
+
 @RestController
 @RequestMapping("/events")
 @Slf4j
 @RequiredArgsConstructor
 public class PublicEventController {
-    final String TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     private final EventService eventService;
 
     @GetMapping
@@ -27,8 +28,8 @@ public class PublicEventController {
             @RequestParam(required = false) String text,
             @RequestParam(required = false) List<@Positive Long> categories,
             @RequestParam(required = false) Boolean paid,
-            @RequestParam(required = false) @DateTimeFormat(pattern = TIME_PATTERN) LocalDateTime rangeStart,
-            @RequestParam(required = false) @DateTimeFormat(pattern = TIME_PATTERN) LocalDateTime rangeEnd,
+            @RequestParam(required = false) @DateTimeFormat(pattern = DATE_PATTERN) LocalDateTime rangeStart,
+            @RequestParam(required = false) @DateTimeFormat(pattern = DATE_PATTERN) LocalDateTime rangeEnd,
             @RequestParam(required = false, defaultValue = "false") Boolean onlyAvailable,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false, defaultValue = "0") Integer from,

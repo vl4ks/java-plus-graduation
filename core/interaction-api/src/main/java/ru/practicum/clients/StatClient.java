@@ -12,17 +12,18 @@ import ru.practicum.dto.ResponseStatsDto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static ru.practicum.DateTimeFormat.DATE_PATTERN;
+
 @FeignClient(name = "stats-server")
 public interface StatClient {
 
-    final String TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
     @PostMapping("/hit")
     String saveHit(@RequestBody ResponseHitDto requestBody);
 
     @GetMapping("/stats")
-    List<ResponseStatsDto> getStats(@RequestParam @DateTimeFormat(pattern = TIME_PATTERN) LocalDateTime start,
-                                    @RequestParam @DateTimeFormat(pattern = TIME_PATTERN) LocalDateTime end,
+    List<ResponseStatsDto> getStats(@RequestParam @DateTimeFormat(pattern = DATE_PATTERN) LocalDateTime start,
+                                    @RequestParam @DateTimeFormat(pattern = DATE_PATTERN) LocalDateTime end,
                                     @RequestParam(defaultValue = "") List<String> uris,
                                     @RequestParam(defaultValue = "false") boolean unique);
 }

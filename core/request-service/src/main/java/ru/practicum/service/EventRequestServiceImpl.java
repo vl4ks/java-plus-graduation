@@ -2,8 +2,8 @@ package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.clients.EventClient;
+import ru.practicum.clients.RequestClient;
 import ru.practicum.dto.*;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.ForbiddenException;
@@ -23,46 +23,41 @@ public class EventRequestServiceImpl implements EventRequestService {
     private final EventRequestRepository eventRequestRepository;
     private final EventRequestMapper eventRequestMapper;
     private final EventClient eventClient;
+    private final RequestClient requestClient;
 
-    @Transactional
     @Override
     public ParticipationRequestDto create(Long userId, Long eventId) {
-        EventFullDto event = eventClient.findById(eventId)
-                .orElseThrow(() -> new ConflictException("Event with id=" + eventId + " not found"));
+        var event = eventClient.findById(eventId);
 
-        EventRequest foundOldRequest = eventRequestRepository.findByEventIdAndRequesterId(eventId, userId);
-        if (foundOldRequest != null) {
-            throw new ConflictException("Trying to create already exist request");
+        if (eventRequestRepository.existsByEventIdAndRequesterId(eventId, userId)) {
+            throw new ConflictException("Request already exists");
         }
 
         if (event.getInitiator().equals(userId)) {
             throw new ConflictException("Initiator of event can't be the same with requester");
         }
         validateEventForRequest(event);
+        EventRequestStatus status = determineRequestStatus(event);
+        EventRequest request = EventRequest.builder()
+                .eventId(eventId)
+                .requesterId(userId)
+                .status(status)
+                .created(LocalDateTime.now())
+                .build();
 
-        EventRequestStatus status = (event.getParticipantLimit().equals(0L) || !event.getRequestModeration()) ?
-                EventRequestStatus.CONFIRMED : EventRequestStatus.PENDING;
+        EventRequest savedRequest = eventRequestRepository.save(request);
 
-
-        EventRequest request = new EventRequest(
-                null,
-                eventId,
-                userId,
-                status,
-                LocalDateTime.now()
-        );
-        EventRequest createdRequest = eventRequestRepository.save(request);
-        if (status.equals(EventRequestStatus.CONFIRMED)) {
-            eventClient.setConfirmed(event.getId(), event.getConfirmedRequests() + 1);
+        if (status == EventRequestStatus.CONFIRMED) {
+            eventClient.setConfirmed(eventId, event.getConfirmedRequests() + 1);
         }
 
-        return eventRequestMapper.toParticipationRequestDto(createdRequest);
+
+        return eventRequestMapper.toParticipationRequestDto(savedRequest);
     }
 
     @Override
     public EventRequestStatusUpdateResult updateStatus(Long userId, Long eventId, EventRequestStatusUpdateRequest requestsToUpdate) {
-        EventFullDto event = eventClient.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " not found"));
+        EventFullDto event = eventClient.findById(eventId);
 
 
         if (!event.getInitiator().equals(userId)) {
@@ -110,8 +105,7 @@ public class EventRequestServiceImpl implements EventRequestService {
 
     @Override
     public Collection<ParticipationRequestDto> getByEventId(Long eventInitiatorId, Long eventId) {
-        EventFullDto event = eventClient.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
+        EventFullDto event = eventClient.findById(eventId);
 
         if (!event.getInitiator().equals(eventInitiatorId)) {
             throw new ConflictException("User with id=" + eventInitiatorId + " is not the initiator of event with id=" + eventId);
@@ -169,5 +163,11 @@ public class EventRequestServiceImpl implements EventRequestService {
         }
 
         eventClient.setConfirmed(event.getId(), currentConfirmed);
+    }
+
+    private EventRequestStatus determineRequestStatus(EventFullDto event) {
+        return (event.getParticipantLimit() == 0 || !event.getRequestModeration())
+                ? EventRequestStatus.CONFIRMED
+                : EventRequestStatus.PENDING;
     }
 }

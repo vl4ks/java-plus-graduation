@@ -13,7 +13,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateCompilationRequest {
-//    private Long id;
+    private Long id;
 
     private Set<Long> events;
 

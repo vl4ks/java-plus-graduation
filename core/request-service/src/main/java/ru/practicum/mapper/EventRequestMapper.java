@@ -11,5 +11,7 @@ import ru.practicum.model.EventRequest;
 public interface EventRequestMapper {
 
     @Mapping(target = "created", expression = "java(eventRequest.getCreated())")
+    @Mapping(target = "event", source = "eventId")
+    @Mapping(target = "requester", source = "requesterId")
     ParticipationRequestDto toParticipationRequestDto(EventRequest eventRequest);
 }

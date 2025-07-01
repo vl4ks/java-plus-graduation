@@ -49,9 +49,9 @@ public class EventServiceImpl implements EventService {
         Category category = categoryRepository.findById(eventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException("Category not found with id: " + eventDto.getCategory()));
 
-        Event event = eventMapper.toEvent(eventDto, category);
-
         Location location = locationRepository.save(locationMapper.toLocation(eventDto.getLocation()));
+
+        Event event = eventMapper.toEvent(eventDto, category);
 
         event.setInitiatorId(userId);
         event.setState(State.PENDING);
@@ -103,10 +103,10 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Collection<EventFullDto> findAllByAdmin(List<Long> users, List<String> states, List<Long> categories, String rangeStart, String rangeEnd, Integer from, Integer size) {
+    public Collection<EventFullDto> findAllByAdmin(List<Long> users, List<String> states, List<Long> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
         final Collection<Event> events = eventRepository.findAllByAdmin(users, states, categories,
-                rangeStart == null ? null : LocalDateTime.parse(rangeStart, DATE_TIME_FORMATTER),
-                rangeEnd == null ? null : LocalDateTime.parse(rangeEnd, DATE_TIME_FORMATTER),
+                rangeStart,
+                rangeEnd,
                 (Pageable) PageRequest.of(from, size));
         return events.stream()
                 .map(eventMapper::mapToFullDto)
@@ -123,15 +123,14 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto findById(Long eventId, HttpServletRequest request) {
-        eventRepository.findAll().forEach(e -> log.info("EVENT: id={}, state={}", e.getId(), e.getState()));
+        final Event event = findEventById(eventId);
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("event is not found with id = " + eventId));
+//        Event event = eventRepository.findById(eventId)
+//                .orElseThrow(() -> new NotFoundException("event is not found with id = " + eventId));
 
-        if (event.getState() != State.PUBLISHED) {
-            throw new NotFoundException("event is not published with id = " + eventId);
+        if (!event.getState().equals(State.PUBLISHED)) {
+            throw new NotFoundException("Event with id=" + eventId + " was not found");
         }
-
         saveView(request);
 
         event.setViews(countViews(eventId,event.getCreatedOn(), LocalDateTime.now()));

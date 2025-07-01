@@ -16,7 +16,7 @@ import java.util.Set;
 public class NewCompilationDto {
     private Set<Long> events;
 
-    private Boolean pinned;
+    private Boolean pinned = false;
 
     @NotBlank
     @Size(min = 1, max = 50)

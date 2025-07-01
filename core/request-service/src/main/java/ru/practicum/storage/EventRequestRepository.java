@@ -9,6 +9,8 @@ import java.util.Collection;
 @Repository
 public interface EventRequestRepository extends JpaRepository<EventRequest, Long> {
 
+    boolean existsByEventIdAndRequesterId(Long eventId, Long requesterId);
+
     Collection<EventRequest> findByRequesterId(Long requesterId);
 
     Collection<EventRequest> findByEventId(Long eventId);

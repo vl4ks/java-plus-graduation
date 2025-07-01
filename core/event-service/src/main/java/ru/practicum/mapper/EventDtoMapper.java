@@ -1,5 +1,6 @@
 package ru.practicum.mapper;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.practicum.dto.*;
 import ru.practicum.model.Category;
@@ -7,12 +8,9 @@ import ru.practicum.model.Event;
 
 
 @Component
+@RequiredArgsConstructor
 public class EventDtoMapper {
     private final LocationMapper locationMapper;
-
-    public EventDtoMapper(LocationMapper locationMapper) {
-        this.locationMapper = locationMapper;
-    }
 
     public EventFullDto mapToFullDto(Event event) {
         if (event == null) {
