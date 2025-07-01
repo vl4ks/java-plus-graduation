@@ -3,7 +3,6 @@ package ru.practicum.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.clients.EventClient;
-import ru.practicum.clients.RequestClient;
 import ru.practicum.dto.*;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.ForbiddenException;
@@ -23,12 +22,10 @@ public class EventRequestServiceImpl implements EventRequestService {
     private final EventRequestRepository eventRequestRepository;
     private final EventRequestMapper eventRequestMapper;
     private final EventClient eventClient;
-    private final RequestClient requestClient;
 
     @Override
     public ParticipationRequestDto create(Long userId, Long eventId) {
-        var event = eventClient.findById(eventId);
-
+        var event = eventClient.findById(eventId).orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " not found"));
         if (eventRequestRepository.existsByEventIdAndRequesterId(eventId, userId)) {
             throw new ConflictException("Request already exists");
         }
@@ -47,17 +44,12 @@ public class EventRequestServiceImpl implements EventRequestService {
 
         EventRequest savedRequest = eventRequestRepository.save(request);
 
-        if (status == EventRequestStatus.CONFIRMED) {
-            eventClient.setConfirmed(eventId, event.getConfirmedRequests() + 1);
-        }
-
-
         return eventRequestMapper.toParticipationRequestDto(savedRequest);
     }
 
     @Override
     public EventRequestStatusUpdateResult updateStatus(Long userId, Long eventId, EventRequestStatusUpdateRequest requestsToUpdate) {
-        EventFullDto event = eventClient.findById(eventId);
+        EventFullDto event = eventClient.findById(eventId).orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " not found"));
 
 
         if (!event.getInitiator().equals(userId)) {
@@ -73,7 +65,6 @@ public class EventRequestServiceImpl implements EventRequestService {
             case EventRequestStatus.REJECTED -> rejectRequests(result, requests);
             case EventRequestStatus.CONFIRMED -> {
                 confirmRequests(result, event, requests);
-                eventClient.setConfirmed(eventId, event.getConfirmedRequests() + result.getConfirmedRequests().size());
             }
             default -> throw new ForbiddenException("Unknown state to update");
         }
@@ -105,7 +96,7 @@ public class EventRequestServiceImpl implements EventRequestService {
 
     @Override
     public Collection<ParticipationRequestDto> getByEventId(Long eventInitiatorId, Long eventId) {
-        EventFullDto event = eventClient.findById(eventId);
+        EventFullDto event = eventClient.findById(eventId).orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " not found"));
 
         if (!event.getInitiator().equals(eventInitiatorId)) {
             throw new ConflictException("User with id=" + eventInitiatorId + " is not the initiator of event with id=" + eventId);
@@ -161,8 +152,6 @@ public class EventRequestServiceImpl implements EventRequestService {
                 currentConfirmed++;
             }
         }
-
-        eventClient.setConfirmed(event.getId(), currentConfirmed);
     }
 
     private EventRequestStatus determineRequestStatus(EventFullDto event) {

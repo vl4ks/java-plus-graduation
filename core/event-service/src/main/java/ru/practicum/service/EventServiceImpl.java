@@ -125,8 +125,6 @@ public class EventServiceImpl implements EventService {
     public EventFullDto findById(Long eventId, HttpServletRequest request) {
         final Event event = findEventById(eventId);
 
-//        Event event = eventRepository.findById(eventId)
-//                .orElseThrow(() -> new NotFoundException("event is not found with id = " + eventId));
 
         if (!event.getState().equals(State.PUBLISHED)) {
             throw new NotFoundException("Event with id=" + eventId + " was not found");
