@@ -116,6 +116,12 @@ public class EventRequestServiceImpl implements EventRequestService {
         return result;
     }
 
+    @Override
+    public List<ParticipationRequestDto> findAllByEventId(Long eventId) {
+        var result =  eventRequestMapper.toParticipationRequestDtoList(eventRequestRepository.findAllByEventId(eventId));
+        return result;
+    }
+
     @Transactional
     @Override
     public ParticipationRequestDto setStatusRequest(Long id, EventRequestStatus status) {

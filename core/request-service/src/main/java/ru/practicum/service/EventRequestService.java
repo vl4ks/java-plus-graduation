@@ -22,6 +22,8 @@ public interface EventRequestService {
 
     List<ParticipationRequestDto> findAllByIds(List<Long> ids);
 
+    List<ParticipationRequestDto> findAllByEventId(Long eventId);
+
     ParticipationRequestDto setStatusRequest(Long id, EventRequestStatus status);
 }
 

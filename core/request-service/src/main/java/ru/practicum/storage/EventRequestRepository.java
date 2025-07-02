@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.model.EventRequest;
 
 import java.util.Collection;
+import java.util.List;
 
 @Repository
 public interface EventRequestRepository extends JpaRepository<EventRequest, Long> {
@@ -18,4 +19,6 @@ public interface EventRequestRepository extends JpaRepository<EventRequest, Long
     EventRequest findByEventIdAndRequesterId(Long eventId, Long requesterId);
 
     Collection<EventRequest> findByIdIn(Collection<Long> requestsIds);
+
+    List<EventRequest> findAllByEventId(Long eventId);
 }

@@ -14,6 +14,12 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class AdminRequestController {
+    @GetMapping("/event/{eventId}")
+    public List<ParticipationRequestDto> findAllByEventId(@PathVariable Long eventId) {
+        var result = requestService.findAllByEventId(eventId);
+        return result;
+    }
+
     private final EventRequestService requestService;
     @GetMapping("/{ids}")
     public List<ParticipationRequestDto> findAllByIds(@PathVariable List<Long> ids) {
