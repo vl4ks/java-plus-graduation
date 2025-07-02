@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import static ru.practicum.DateTimeFormat.DATE_PATTERN;
+
 
 @Data
 @Builder
@@ -27,6 +29,6 @@ public class ResponseHitDto {
 
     @NotNull
     @JsonProperty("timestamp")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = DATE_PATTERN)
     private LocalDateTime timestamp;
 }

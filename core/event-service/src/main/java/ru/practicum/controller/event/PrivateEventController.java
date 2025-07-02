@@ -7,13 +7,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.dto.EventFullDto;
-import ru.practicum.dto.EventShortDto;
-import ru.practicum.dto.NewEventDto;
-import ru.practicum.dto.UpdateEventUserRequest;
+import ru.practicum.dto.*;
 import ru.practicum.service.EventService;
 
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users/{userId}/events")
@@ -57,5 +55,18 @@ public class PrivateEventController {
         final EventFullDto event = eventService.updateByPrivate(userId, eventId, eventDto);
         log.info("Отправлен ответ PATCH /users/{}/events/{} с телом: {}", userId, eventId, event);
         return event;
+    }
+
+    @GetMapping("/{eventId}/requests")
+    public List<ParticipationRequestDto> getRequestsOfUserEvent(@PathVariable Long userId, @PathVariable Long eventId) {
+        return eventService.getRequestsOfUserEvent(userId, eventId);
+    }
+
+    @PatchMapping("/{eventId}/requests")
+    public EventRequestStatusUpdateResult updateRequestsStatus(@PathVariable Long userId, @PathVariable Long eventId,
+                                                               @Valid @RequestBody
+                                                               EventRequestStatusUpdateRequest updateRequest) {
+        log.info("Получен запрос на обновление статусов заявок");
+        return eventService.updateRequestsStatus(updateRequest, userId, eventId);
     }
 }

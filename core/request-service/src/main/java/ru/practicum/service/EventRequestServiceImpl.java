@@ -2,6 +2,7 @@ package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.clients.EventClient;
 import ru.practicum.dto.*;
 import ru.practicum.exception.ConflictException;
@@ -14,6 +15,7 @@ import ru.practicum.storage.EventRequestRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service("eventRequestServiceImpl")
@@ -107,6 +109,22 @@ public class EventRequestServiceImpl implements EventRequestService {
                 .map(eventRequestMapper::toParticipationRequestDto)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
+
+    @Override
+    public List<ParticipationRequestDto> findAllByIds(List<Long> ids) {
+        var result =  eventRequestMapper.toParticipationRequestDtoList(eventRequestRepository.findAllById(ids));
+        return result;
+    }
+
+    @Transactional
+    @Override
+    public ParticipationRequestDto setStatusRequest(Long id, EventRequestStatus status) {
+        var result = eventRequestRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(" не найдено запроса с id: " + id));
+        result.setStatus(status);
+        return eventRequestMapper.toParticipationRequestDto(result);
+    }
+
 
     private void validateEventForRequest(EventFullDto event) {
         if (!event.getState().equals(State.PUBLISHED)) {

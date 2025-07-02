@@ -1,7 +1,6 @@
 package ru.practicum.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -27,7 +26,6 @@ public class UpdateEventAdminRequest {
     @JsonFormat(pattern = DATE_PATTERN)
     private LocalDateTime eventDate;
 
-    @Valid
     private LocationDto location;
 
     private Boolean paid;

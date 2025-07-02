@@ -7,8 +7,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.clients.RequestClient;
 import ru.practicum.clients.StatClient;
+import ru.practicum.clients.UserClient;
 import ru.practicum.dto.*;
+import ru.practicum.exception.*;
 import ru.practicum.mapper.*;
 import ru.practicum.model.Category;
 import ru.practicum.model.Event;
@@ -16,18 +19,13 @@ import ru.practicum.model.Location;
 import ru.practicum.storage.CategoryRepository;
 import ru.practicum.storage.EventRepository;
 import ru.practicum.storage.LocationRepository;
-import ru.practicum.exception.ConflictException;
-import ru.practicum.exception.ForbiddenException;
-import ru.practicum.exception.IncorrectRequestException;
-import ru.practicum.exception.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static ru.practicum.DateTimeFormat.DATE_TIME_FORMATTER;
 
 @Slf4j
 @Service("eventServiceImpl")
@@ -40,7 +38,9 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
     private final EventDtoMapper eventMapper;
-    private final LocationMapper locationMapper;
+    private final LocationDtoMapper locationDtoMapper;
+    private final RequestClient requestClient;
+    private final UserClient userClient;
 
     @Override
     public EventFullDto create(Long userId, NewEventDto eventDto) {
@@ -49,7 +49,7 @@ public class EventServiceImpl implements EventService {
         Category category = categoryRepository.findById(eventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException("Category not found with id: " + eventDto.getCategory()));
 
-        Location location = locationRepository.save(locationMapper.toLocation(eventDto.getLocation()));
+        Location location = locationRepository.save(locationDtoMapper.mapFromDto(eventDto.getLocation()));
 
         Event event = eventMapper.toEvent(eventDto, category);
 
@@ -114,6 +114,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventFullDto findEvent(Long eventId, Long userId) {
         return eventMapper.mapToFullDto(
                 eventRepository.findByIdAndUserId(eventId, userId)
@@ -195,6 +196,69 @@ public class EventServiceImpl implements EventService {
         eventRepository.save(event);
     }
 
+    @Override
+    public List<ParticipationRequestDto> getRequestsOfUserEvent(Long userId, Long eventId) {
+        if (userClient.findById(userId) == null) {
+            throw new NotFoundException("Пользователь не найден.");
+        }
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Событие не найдено."));
+
+        if (!Objects.equals(event.getInitiatorId(), userId)) {
+            log.error("userId не соответствует id инициатору события");
+            throw new ValidationException("Событие должно быть создано текущим пользователем");
+        }
+        return requestClient.findAllByEventId(eventId);
+    }
+
+    @Override
+    @Transactional
+    public EventRequestStatusUpdateResult updateRequestsStatus(EventRequestStatusUpdateRequest updateRequest,
+                                                               Long userId, Long eventId) {
+        if (userClient.findById(userId) == null) {
+            throw new NotFoundException("Пользователь не найден.");
+        }
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Событие не найдено."));
+        if (!Objects.equals(event.getInitiatorId(), userId)) {
+            throw new ValidationException("Событие должно быть создано текущим пользователем");
+        }
+        if (Objects.equals(event.getConfirmedRequests(), event.getParticipantLimit())) {
+            throw new ConflictException("Лимит участников уже исчерпан");
+        }
+        Collection<Long> requestIds = updateRequest.getRequestIds();
+        log.info("Получили список id запросов на участие: {}", requestIds);
+        Collection<ParticipationRequestDto> requestList = requestClient.findAllByIds(requestIds);
+        if (requestList.stream().anyMatch(request -> !Objects.equals(request.getEvent(), eventId))) {
+            throw new ValidationException("Все запросы должны принадлежать одному событию");
+        }
+        List<ParticipationRequestDto> confirmedRequestsList = new ArrayList<>();
+        List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
+        if (event.getRequestModeration() && event.getParticipantLimit() != 0) {
+            switch (updateRequest.getStatus()) {
+                case CONFIRMED -> requestList.forEach(request -> {
+                    if (request.getStatus() != EventRequestStatus.PENDING) {
+                        throw new ConflictException("Можно изменить только статус PENDING");
+                    }
+                    if (Objects.equals(event.getConfirmedRequests(), event.getParticipantLimit())) {
+                        request = requestClient.setStatusRequest(request.getId(), EventRequestStatus.REJECTED);
+                        rejectedRequests.add(request);
+                    } else {
+                        request = requestClient.setStatusRequest(request.getId(), EventRequestStatus.CONFIRMED);
+                        Long confirmedRequests = event.getConfirmedRequests();
+                        event.setConfirmedRequests(++confirmedRequests);
+                        confirmedRequestsList.add(request);
+                    }
+                });
+                case REJECTED -> requestList.forEach(request -> {
+                    if (request.getStatus() != EventRequestStatus.PENDING) {
+                        throw new ConflictException("Можно изменить только статус PENDING");
+                    }
+                    request = requestClient.setStatusRequest(request.getId(), EventRequestStatus.REJECTED);
+                    rejectedRequests.add(request);
+                });
+            }
+        }
+        return new EventRequestStatusUpdateResult(confirmedRequestsList, rejectedRequests);
+    }
 
     private void validateEventDate(LocalDateTime eventDate) {
         if (eventDate != null && eventDate.isBefore(LocalDateTime.now().plusHours(2))) {

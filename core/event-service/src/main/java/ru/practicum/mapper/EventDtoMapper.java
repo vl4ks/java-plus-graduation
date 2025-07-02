@@ -10,7 +10,7 @@ import ru.practicum.model.Event;
 @Component
 @RequiredArgsConstructor
 public class EventDtoMapper {
-    private final LocationMapper locationMapper;
+    private final LocationDtoMapper locationDtoMapper;
 
     public EventFullDto mapToFullDto(Event event) {
         if (event == null) {
@@ -26,7 +26,7 @@ public class EventDtoMapper {
         eventFullDto.setDescription(event.getDescription());
         eventFullDto.setEventDate(event.getEventDate());
         eventFullDto.setInitiator(event.getInitiatorId());
-        eventFullDto.setLocation(locationMapper.toLocationDto(event.getLocation()));
+        eventFullDto.setLocation(locationDtoMapper.mapToDto(event.getLocation()));
         eventFullDto.setPaid(event.getPaid());
         eventFullDto.setParticipantLimit(event.getParticipantLimit());
         eventFullDto.setPublishedOn(event.getPublishedOn());
@@ -94,7 +94,7 @@ public class EventDtoMapper {
             event.setEventDate(updateRequest.getEventDate());
         }
         if (updateRequest.getLocation() != null) {
-            event.setLocation(locationMapper.toLocation(updateRequest.getLocation()));
+            event.setLocation(locationDtoMapper.mapFromDto(updateRequest.getLocation()));
         }
         if (updateRequest.getPaid() != null) {
             event.setPaid(updateRequest.getPaid());
@@ -131,7 +131,7 @@ public class EventDtoMapper {
             event.setEventDate(updateRequest.getEventDate());
         }
         if (updateRequest.getLocation() != null) {
-            event.setLocation(locationMapper.toLocation(updateRequest.getLocation()));
+            event.setLocation(locationDtoMapper.mapFromDto(updateRequest.getLocation()));
         }
         if (updateRequest.getPaid() != null) {
             event.setPaid(updateRequest.getPaid());
