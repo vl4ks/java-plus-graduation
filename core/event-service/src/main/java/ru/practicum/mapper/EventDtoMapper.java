@@ -8,8 +8,11 @@ import ru.practicum.model.Event;
 
 
 @Component
-@RequiredArgsConstructor
 public class EventDtoMapper {
+    public EventDtoMapper(LocationDtoMapper locationDtoMapper) {
+        this.locationDtoMapper = locationDtoMapper;
+    }
+
     private final LocationDtoMapper locationDtoMapper;
 
     public EventFullDto mapToFullDto(Event event) {

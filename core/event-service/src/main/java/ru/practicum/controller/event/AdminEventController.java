@@ -48,4 +48,15 @@ public class AdminEventController {
         log.info("Отправлен ответ PATCH /admin/events/{} с телом: {}", eventId, event);
         return event;
     }
+
+    @GetMapping("/{eventId}")
+    public EventFullDto findById(@PathVariable("eventId") @Positive Long eventId) {
+        log.info("Получение подробной информации об опубликованном событии по его идентификатору.");
+            return eventService.getAdminEventById(eventId);
+    }
+
+    @PutMapping("/request/{eventId}")
+    public void setConfirmedRequests(@PathVariable("eventId") Long eventId, @RequestBody Long count) {
+        eventService.setConfirmedRequests(eventId, count);
+    }
 }

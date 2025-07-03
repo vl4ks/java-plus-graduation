@@ -1,6 +1,8 @@
 package ru.practicum.service;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import ru.practicum.dto.*;
 
 import java.time.LocalDateTime;
@@ -26,10 +28,12 @@ public interface EventService {
 
     EventFullDto updateByAdmin(Long eventId, UpdateEventAdminRequest eventDto);
 
-    void updateEventConfirmedRequests(Long eventId, Long confirmedRequests);
+    void setConfirmedRequests(Long eventId, Long count);
 
     List<ParticipationRequestDto> getRequestsOfUserEvent(Long userId, Long eventId);
 
     EventRequestStatusUpdateResult updateRequestsStatus(EventRequestStatusUpdateRequest updateRequest,
                                                         Long userId, Long eventId);
+
+    EventFullDto getAdminEventById(Long eventId);
 }

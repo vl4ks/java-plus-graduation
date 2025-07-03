@@ -21,7 +21,7 @@ public class PublicCompilationController {
             @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size) {
         log.info("Запрос на получение подборки всех событий");
-        return compilationService.getAllCompilations(from, size, pinned);
+        return compilationService.getAllCompilations(pinned, from, size);
     }
 
     @GetMapping("/{compId}")

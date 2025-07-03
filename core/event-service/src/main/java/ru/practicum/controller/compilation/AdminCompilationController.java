@@ -31,10 +31,10 @@ public class AdminCompilationController {
         return compilationService.updateCompilation(compId, updateCompilation);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{compId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCompilation(@PathVariable Long id) {
+    public void deleteCompilation(@PathVariable Long compId) {
         log.info("Запрос на удаление подборки событий - ADMIN");
-        compilationService.deleteCompilation(id);
+        compilationService.deleteCompilation(compId);
     }
 }

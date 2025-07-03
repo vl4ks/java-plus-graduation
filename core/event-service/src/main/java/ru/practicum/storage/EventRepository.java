@@ -43,7 +43,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                 AND (?3 IS NULL or e.paid = ?3)
                 AND (CAST(?4 AS timestamp) IS NULL and e.eventDate >= CURRENT_TIMESTAMP or e.eventDate >= ?4)
                 AND (CAST(?5 AS timestamp) IS NULL or e.eventDate < ?5)
-                AND (?6 = false or e.participantLimit = 0 or e.participantLimit < e.confirmedRequests)
+                AND (?6 = false or e.participantLimit = 0 or e.confirmedRequests < e.participantLimit)
         """)
     List<Event> findAllByPublic(
             String text,

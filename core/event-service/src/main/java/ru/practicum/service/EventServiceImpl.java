@@ -43,6 +43,7 @@ public class EventServiceImpl implements EventService {
     private final UserClient userClient;
 
     @Override
+    @Transactional
     public EventFullDto create(Long userId, NewEventDto eventDto) {
         validateEventDate(eventDto.getEventDate());
 
@@ -116,10 +117,11 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventFullDto findEvent(Long eventId, Long userId) {
-        return eventMapper.mapToFullDto(
-                eventRepository.findByIdAndUserId(eventId, userId)
-                        .orElseThrow(() -> new NotFoundException("event is not found with id = " + eventId))
-        );
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
+        if (!Objects.equals(event.getInitiatorId(), userId)) {
+            throw new ValidationException("Можно просмотреть только своё событие");
+        }
+        return eventMapper.mapToFullDto(event);
     }
 
     @Override
@@ -128,16 +130,17 @@ public class EventServiceImpl implements EventService {
 
 
         if (!event.getState().equals(State.PUBLISHED)) {
-            throw new NotFoundException("Event with id=" + eventId + " was not found");
+            throw new NotFoundException("Посмотреть можно только опубликованное событие.");
         }
         saveView(request);
 
-        event.setViews(countViews(eventId,event.getCreatedOn(), LocalDateTime.now()));
+        event.setViews(countViews(eventId, event.getCreatedOn(), LocalDateTime.now()));
         eventRepository.save(event);
         return eventMapper.mapToFullDto(event);
     }
 
     @Override
+    @Transactional
     public EventFullDto updateByPrivate(Long userId, Long eventId, UpdateEventUserRequest eventDto) {
         final Event event = findEventById(eventId);
 
@@ -189,10 +192,12 @@ public class EventServiceImpl implements EventService {
         return eventMapper.mapToFullDto(event);
     }
 
+    @Transactional
     @Override
-    public void updateEventConfirmedRequests(Long eventId, Long confirmedRequests) {
-        final Event event = findEventById(eventId);
-        event.setConfirmedRequests(confirmedRequests);
+    public void setConfirmedRequests(Long eventId, Long count) {
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
+        event.setConfirmedRequests(count);
         eventRepository.save(event);
     }
 
@@ -208,6 +213,14 @@ public class EventServiceImpl implements EventService {
             throw new ValidationException("Событие должно быть создано текущим пользователем");
         }
         return requestClient.findAllByEventId(eventId);
+    }
+
+    @Override
+    public EventFullDto getAdminEventById(Long eventId) {
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
+
+        return eventMapper.mapToFullDto(event);
     }
 
     @Override

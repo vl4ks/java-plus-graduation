@@ -5,14 +5,17 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import ru.practicum.dto.EventFullDto;
 
-import java.util.Optional;
 
-
-@FeignClient(name = "event-service", path = "/events")
+@FeignClient(name = "event-service")
 public interface EventClient {
 
-    @GetMapping("/{eventId}")
-    Optional<EventFullDto> findById(@PathVariable Long eventId) throws FeignException;
+    @PutMapping("/admin/events/request/{eventId}")
+    EventFullDto setConfirmedRequests(@PathVariable("eventId") Long eventId, @RequestBody Long count) throws FeignException;
+
+    @GetMapping("/admin/events/{eventId}")
+    EventFullDto findById(@PathVariable Long eventId) throws FeignException;
 }

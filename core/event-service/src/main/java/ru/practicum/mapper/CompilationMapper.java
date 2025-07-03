@@ -27,6 +27,8 @@ public interface CompilationMapper {
 
     CompilationDto getCompilationDto(Compilation compilation);
 
+
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "events", source = "events")
     Compilation getCompilation(NewCompilationDto newCompilationDto, @Context EventRepository eventRepository);

@@ -6,15 +6,18 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.CompilationDto;
+import ru.practicum.dto.EventShortDto;
 import ru.practicum.dto.NewCompilationDto;
 import ru.practicum.dto.UpdateCompilationRequest;
 import ru.practicum.mapper.CompilationMapper;
+import ru.practicum.mapper.EventDtoMapper;
 import ru.practicum.model.Compilation;
 import ru.practicum.storage.CompilationRepository;
 import ru.practicum.storage.EventRepository;
 import ru.practicum.exception.NotFoundException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service("compilationServiceImpl")
@@ -23,6 +26,7 @@ public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compilationRepository;
     private final EventRepository eventRepository;
     private final CompilationMapper compilationMapper;
+    private final EventDtoMapper eventDtoMapper;
 
     @Override
     public CompilationDto addCompilation(NewCompilationDto newCompilationDto) {
@@ -53,12 +57,24 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public List<CompilationDto> getAllCompilations(Integer from, Integer size, Boolean pinned) {
+    public List<CompilationDto> getAllCompilations(Boolean pinned, Integer from, Integer size) {
+        log.info("Получение всех подборок с pinned={}, from={}, size={}", pinned, from, size);
         log.info("Получение всех подборок с from={}, size={}, pinned={}", from, size, pinned);
         PageRequest pageRequest = PageRequest.of(from, size);
-        return compilationRepository.findAllByPinned(pinned, pageRequest).stream()
-                .map(CompilationMapper.INSTANCE::getCompilationDto)
-                .toList();
+        List<Compilation> compilations;
+        if (pinned != null) {
+            log.info("Получение всех подборок с pinned: {}", pinned);
+            compilations = compilationRepository.findAllByPinned(pinned, pageRequest);
+            log.info("Получены подборки с pinned={}: {}", pinned, compilations);
+        } else {
+            log.info("Получение всех подборок без фильтрации по pinned");
+            compilations = compilationRepository.findAll(pageRequest).getContent();
+            log.info("Получены все подборки: {}", compilations);
+
+        }
+        return compilations.stream()
+                .map(compilationMapper::getCompilationDto)
+                .collect(Collectors.toList());
     }
 
     @Override
