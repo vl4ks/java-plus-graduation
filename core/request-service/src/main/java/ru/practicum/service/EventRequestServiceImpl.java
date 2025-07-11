@@ -40,7 +40,6 @@ public class EventRequestServiceImpl implements EventRequestService {
         EventRequestStatus status = (event.getParticipantLimit().equals(0L) || !event.getRequestModeration()) ?
                 EventRequestStatus.CONFIRMED : EventRequestStatus.PENDING;
 
-//        EventRequestStatus status = determineRequestStatus(event);
         EventRequest request = EventRequest.builder()
                 .eventId(eventId)
                 .requesterId(userId)
@@ -50,12 +49,9 @@ public class EventRequestServiceImpl implements EventRequestService {
 
         EventRequest savedRequest = eventRequestRepository.save(request);
 
-//        if (status.equals(EventRequestStatus.CONFIRMED)) {
-//            eventService.updateEventConfirmedRequests(event.getId(), event.getConfirmedRequests() + 1);
-//        }
-
-        if (status.equals(EventRequestStatus.CONFIRMED)) {
-            event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+        if (status == EventRequestStatus.CONFIRMED) {
+            Long newCount = event.getConfirmedRequests() + 1;
+            eventClient.setConfirmedRequests(eventId, newCount);
         }
 
         return eventRequestMapper.toParticipationRequestDto(savedRequest);
@@ -193,10 +189,4 @@ public class EventRequestServiceImpl implements EventRequestService {
             }
         }
     }
-
-//    private EventRequestStatus determineRequestStatus(EventFullDto event) {
-//        return (event.getParticipantLimit() == 0 || !event.getRequestModeration())
-//                ? EventRequestStatus.CONFIRMED
-//                : EventRequestStatus.PENDING;
-//    }
 }
