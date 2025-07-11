@@ -1,8 +1,6 @@
 package ru.practicum.service;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import ru.practicum.dto.*;
 
 import java.time.LocalDateTime;

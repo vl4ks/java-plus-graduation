@@ -3,6 +3,7 @@ package ru.practicum.service;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,9 @@ import java.util.stream.Collectors;
 @Service("eventServiceImpl")
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
+
+    @Value("${spring.application.name}")
+    private String appName;
 
     private final StatClient statClient;
     private final EventRepository eventRepository;
@@ -331,7 +335,7 @@ public class EventServiceImpl implements EventService {
                 .build();
 
         ResponseHitDto hitDto = ResponseHitDto.builder()
-                .app("event-service")
+                .app(appName)
                 .uri(viewDto.getUri())
                 .ip(viewDto.getIp())
                 .timestamp(viewDto.getTimestamp())

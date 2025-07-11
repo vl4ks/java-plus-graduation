@@ -52,37 +52,3 @@ public interface StatisticRepository extends JpaRepository<Hit, Long> {
     List<ResponseStatsDto> getStatsWithoutUrisUnique(@Param("start") LocalDateTime start,
                                                      @Param("end") LocalDateTime end);
 }
-//    @Query("""
-//                SELECT new ru.practicum.dto.ResponseStatsDto(
-//                    h.app,
-//                    h.uri,
-//                    COUNT(h) AS hits,
-//                    COUNT(DISTINCT h.ip) AS uniqHits
-//                )
-//                FROM Hit h
-//                WHERE h.timestamp >= :start
-//                  AND h.timestamp <= :end
-//                  AND h.uri IN :uris
-//                GROUP BY h.app, h.uri
-//                ORDER BY COUNT(h) DESC
-//            """)
-//    List<ResponseStatsDto> getByUris(@Param("start") LocalDateTime start,
-//                                     @Param("end") LocalDateTime end,
-//                                     @Param("uris") List<String> uris);
-//
-//    @Query("""
-//                SELECT new ru.practicum.dto.ResponseStatsDto(
-//                    h.app,
-//                    h.uri,
-//                    COUNT(h) AS hits,
-//                    COUNT(DISTINCT h.ip) AS uniqHits
-//                )
-//                FROM Hit h
-//                WHERE h.timestamp >= :start
-//                  AND h.timestamp <= :end
-//                GROUP BY h.app, h.uri
-//                ORDER BY COUNT(h) DESC
-//            """)
-//    List<ResponseStatsDto> getByAllUris(@Param("start") LocalDateTime start,
-//                                        @Param("end") LocalDateTime end);
-

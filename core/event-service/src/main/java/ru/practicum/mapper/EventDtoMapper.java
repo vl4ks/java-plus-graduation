@@ -1,6 +1,5 @@
 package ru.practicum.mapper;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.practicum.dto.*;
 import ru.practicum.model.Category;
