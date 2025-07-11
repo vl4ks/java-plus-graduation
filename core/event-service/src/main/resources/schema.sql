@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS events (
     created_on TIMESTAMP NOT NULL,
     published_on TIMESTAMP,
     views   BIGINT,
+    commenting BOOLEAN,
     FOREIGN KEY (category_id) REFERENCES categories(id),
     FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE CASCADE
 );
