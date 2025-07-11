@@ -56,6 +56,9 @@ public class EventServiceImpl implements EventService {
 
         Location location = locationRepository.save(locationDtoMapper.mapFromDto(eventDto.getLocation()));
 
+        if (eventDto.getCommenting() == null) {
+            eventDto.setCommenting(true);
+        }
         Event event = eventMapper.toEvent(eventDto, category);
 
         event.setInitiatorId(userId);
@@ -65,6 +68,8 @@ public class EventServiceImpl implements EventService {
         if (event.getConfirmedRequests() == null) {
             event.setConfirmedRequests(0L);
         }
+        event.setCommenting(eventDto.getCommenting() != null ? eventDto.getCommenting() : true);
+
         return eventMapper.mapToFullDto(eventRepository.save(event));
     }
 

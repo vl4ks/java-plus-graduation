@@ -36,6 +36,7 @@ public class EventDtoMapper {
         eventFullDto.setState(event.getState());
         eventFullDto.setTitle(event.getTitle());
         eventFullDto.setViews(event.getViews());
+        eventFullDto.setCommenting(event.getCommenting());
 
         return eventFullDto;
     }
@@ -55,6 +56,7 @@ public class EventDtoMapper {
         eventShortDto.setPaid(event.getPaid());
         eventShortDto.setTitle(event.getTitle());
         eventShortDto.setViews(event.getViews());
+        eventShortDto.setCommenting(event.getCommenting());
 
         return eventShortDto;
     }
@@ -74,6 +76,7 @@ public class EventDtoMapper {
         event.setRequestModeration(newEventDto.getRequestModeration() != null ? newEventDto.getRequestModeration() : true);
         event.setTitle(newEventDto.getTitle());
         event.setConfirmedRequests(0L);
+        event.setCommenting(newEventDto.getCommenting());
         return event;
     }
 
@@ -113,6 +116,10 @@ public class EventDtoMapper {
         if (updateRequest.getStateAction() != null) {
             event.setState(toEventState(updateRequest.getStateAction()));
         }
+        if (updateRequest.getCommenting() != null) {
+            event.setCommenting(updateRequest.getCommenting());
+        }
+
     }
 
     public void updateEventFromAdminRequest(Event event, UpdateEventAdminRequest updateRequest, Category category) {
@@ -150,6 +157,10 @@ public class EventDtoMapper {
         if (updateRequest.getStateAction() != null) {
             event.setState(toEventState(updateRequest.getStateAction()));
         }
+        if (updateRequest.getCommenting() != null) {
+            event.setCommenting(updateRequest.getCommenting());
+        }
+
     }
 
     private State toEventState(StateAction stateAction) {

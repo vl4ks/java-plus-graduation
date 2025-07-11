@@ -67,4 +67,6 @@ public class Event {
 
     @Column(name = "views")
     private Long views;
+
+    Boolean commenting;
 }
