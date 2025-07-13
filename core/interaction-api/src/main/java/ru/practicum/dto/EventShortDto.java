@@ -34,5 +34,5 @@ public class EventShortDto {
 
     private Long views;
 
-    Boolean commenting;
+    private Boolean commenting;
 }

@@ -21,6 +21,8 @@ public class PublicCommentController {
                                                      @RequestParam(defaultValue = "LIKES") SortType sort,
                                                      @RequestParam(defaultValue = "0") Integer from,
                                                      @RequestParam(defaultValue = "20") Integer size) {
+        log.info("Получили публичный запрос на получение комментариев для мероприятия с eventId={}. Параметры: сортировка={}, from={}, size={}",
+                eventId, sort, from, size);
         return commentService.getAllComments(eventId, sort, from, size);
     }
 }

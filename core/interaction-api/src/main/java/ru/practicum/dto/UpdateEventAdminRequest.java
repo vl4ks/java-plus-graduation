@@ -40,5 +40,5 @@ public class UpdateEventAdminRequest {
     @Size(min = 3, max = 120, message = "Name should be from 3 to 120 symbols")
     private String title;
 
-    Boolean commenting;
+    private Boolean commenting;
 }

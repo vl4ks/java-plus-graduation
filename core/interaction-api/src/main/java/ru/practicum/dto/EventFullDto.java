@@ -48,5 +48,5 @@ public class EventFullDto {
 
     private Long views;
 
-    Boolean commenting;
+    private Boolean commenting;
 }

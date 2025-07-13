@@ -6,13 +6,12 @@ import lombok.experimental.FieldDefaults;
 import java.util.Set;
 
 @Getter
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class UserDtoForAdmin {
-    Long id;
-    String email;
-    String name;
-    Set<Long> forbiddenCommentEvents;
+    private Long id;
+    private String email;
+    private String name;
+    private Set<Long> forbiddenCommentEvents;
 }

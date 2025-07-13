@@ -13,17 +13,18 @@ import ru.practicum.service.StatisticService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static ru.practicum.DateTimeFormat.DATE_PATTERN;
+
 
 @RestController
 @Slf4j
 @RequiredArgsConstructor
 public class StatsController {
-    final String TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     private final StatisticService statisticService;
 
     @GetMapping("/stats")
-    public List<ResponseStatsDto> getStats(@RequestParam @DateTimeFormat(pattern = TIME_PATTERN) LocalDateTime start,
-                                           @RequestParam @DateTimeFormat(pattern = TIME_PATTERN) LocalDateTime end,
+    public List<ResponseStatsDto> getStats(@RequestParam @DateTimeFormat(pattern = DATE_PATTERN) LocalDateTime start,
+                                           @RequestParam @DateTimeFormat(pattern = DATE_PATTERN) LocalDateTime end,
                                            @RequestParam(required = false, defaultValue = "") List<String> uris,
                                            @RequestParam(required = false) boolean unique) {
         log.info("Получен запрос на получение статистики по посещениям");

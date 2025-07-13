@@ -19,7 +19,8 @@ public class PrivateCommentController {
     @ResponseStatus(HttpStatus.CREATED)
     public CommentDto createComment(@PathVariable Long userId, @RequestParam(defaultValue = "0") Long eventId,
                                     @RequestBody NewCommentDto newCommentDto) {
-        log.info("Получили запрос на создание комментария {}", newCommentDto);
+        log.info("Получили запрос от пользователя с userId={} на создание комментария для мероприятия c eventId={}. Текст: {}",
+                userId, eventId, newCommentDto.getText());
         return commentService.createComment(eventId, userId, newCommentDto);
     }
 
@@ -27,7 +28,8 @@ public class PrivateCommentController {
     public CommentDto updateComment(@PathVariable Long userId, @PathVariable Long commentId,
                                     @RequestParam(defaultValue = "0") Long eventId,
                                     @RequestBody NewCommentDto newCommentDto) {
-        log.info("Получили запрос на редактирование комментария {}", newCommentDto);
+        log.info("Получили запрос от пользователя с userId={} на редактирование комментария с commentId={} для мероприятия c eventId={}. Новый текст: {}",
+                userId, commentId, eventId, newCommentDto.getText());
         return commentService.updateComment(userId, eventId, commentId, newCommentDto);
     }
 
@@ -35,20 +37,23 @@ public class PrivateCommentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(@PathVariable Long userId, @PathVariable Long commentId,
                               @RequestParam(defaultValue = "0") Long eventId) {
-        log.info("Получили запрос на удаление комментария");
+        log.info("Получили запрос от пользователя с userId={} на удаление комментария с commentId={} для мероприятия c eventId={}",
+                userId, commentId, eventId);
         commentService.deleteComment(userId, eventId, commentId);
     }
 
     @PutMapping("/{commentId}/like")
     public CommentDto addLike(@PathVariable Long userId, @PathVariable Long commentId) {
-        log.info("Получили запрос на добавление лайка");
+        log.info("Получили запрос от пользователя с userId={} на добавление лайка к комментарию с commentId={}",
+                userId, commentId);
         return commentService.addLike(userId, commentId);
     }
 
     @DeleteMapping("/{commentId}/like")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteLike(@PathVariable Long userId, @PathVariable Long commentId) {
-        log.info("Получили запрос на удаление лайка");
+        log.info("Получили запрос от пользователя с userId={} на удаление лайка у комментария с commentId={}",
+                userId, commentId);
         commentService.deleteLike(userId, commentId);
     }
 }

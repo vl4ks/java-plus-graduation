@@ -64,16 +64,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     )
     void updateConfirmedRequests(Long eventId, Long confirmedRequests);
 
-    @Query("SELECT e FROM Event e WHERE e.id = ?1 AND e.initiatorId = ?2")
-    Optional<Event> findByIdAndUserId(Long eventId, Long userId);
+    Optional<Event> findByIdAndInitiatorId(Long id, Long initiatorId);
 
-    @Query("""
-            SELECT e
-            FROM Event as e
-            WHERE e.id = :eventId
-            AND e.state = :state
-            """)
-    Optional<Event> findByIdAndStatus(Long eventId, State state);
+    Optional<Event> findByIdAndState(Long id, State state);
 
     List<Event> findAllByIdIn(List<Long> eventIds);
 

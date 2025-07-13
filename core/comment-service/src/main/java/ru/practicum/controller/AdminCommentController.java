@@ -17,25 +17,30 @@ public class AdminCommentController {
 
     @PutMapping("/ban/{userId}")
     public UserDtoForAdmin addBanCommited(@PathVariable Long userId, @RequestParam(defaultValue = "0") Long eventId) {
-        log.info("Получили запрос от администратора на добавление запрета комментирования");
+        log.info("Получили запрос от администратора с userId={} на добавление запрета комментирования мероприятия c eventId={}",
+                userId, eventId);
         return commentService.addBanCommited(userId, eventId);
     }
 
     @DeleteMapping("/ban/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteBanCommited(@PathVariable Long userId, @RequestParam(defaultValue = "0") Long eventId) {
-        log.info("Получили запрос от администратора на отмену запрета комментирования");
+        log.info("Получили запрос от администратора с userId={} на отмену запрета комментирования мероприятия c eventId={}",
+                userId, eventId);
         commentService.deleteBanCommited(userId, eventId);
     }
 
     @DeleteMapping("/{commentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(@PathVariable Long commentId, @RequestParam(defaultValue = "0") Long eventId) {
+        log.info("Получили запрос от администратора на удаление комментария с commentId={} для мероприятия c eventId={}",
+                commentId, eventId);
         commentService.deleteComment(commentId, eventId);
     }
 
     @GetMapping
     public CommentDto getComment(@RequestParam(defaultValue = "0") Long id) {
+        log.info("Получили запрос от администратора на получение комментария с id={}", id);
         return commentService.getComment(id);
     }
 }
