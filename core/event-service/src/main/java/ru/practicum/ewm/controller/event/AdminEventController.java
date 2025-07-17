@@ -28,11 +28,11 @@ public class AdminEventController {
             @RequestParam(required = false) List<Long> users,
             @RequestParam(required = false) List<String> states,
             @RequestParam(required = false) List<Long> categories,
-            @RequestParam(required = false)  @DateTimeFormat(pattern = DATE_PATTERN) LocalDateTime rangeStart,
-            @RequestParam(required = false)  @DateTimeFormat(pattern = DATE_PATTERN) LocalDateTime rangeEnd,
+            @RequestParam(required = false) @DateTimeFormat(pattern = DATE_PATTERN) LocalDateTime rangeStart,
+            @RequestParam(required = false) @DateTimeFormat(pattern = DATE_PATTERN) LocalDateTime rangeEnd,
             @RequestParam(required = false, defaultValue = "0") Integer from,
             @RequestParam(required = false, defaultValue = "10") Integer size
-        ) {
+    ) {
         log.info("Пришел GET запрос /admin/events с параметрами: users={}, states={}, categories={}, rangeStart={}, rangeEnd={}, from={}, size={}",
                 users, states, categories, rangeStart, rangeEnd, from, size);
         final Collection<EventFullDto> events = eventService.findAllByAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
@@ -50,12 +50,17 @@ public class AdminEventController {
 
     @GetMapping("/{eventId}")
     public EventFullDto findById(@PathVariable("eventId") @Positive Long eventId) {
-        log.info("Получение подробной информации об опубликованном событии по его идентификатору.");
-            return eventService.getAdminEventById(eventId);
+        log.info("Пришел GET запрос /admin/events/{}", eventId);
+        EventFullDto event = eventService.getAdminEventById(eventId);
+        log.info("Отправлен ответ GET /admin/events/{} с телом: {}", eventId, event);
+        return event;
     }
 
     @PutMapping("/request/{eventId}")
     public void setConfirmedRequests(@PathVariable("eventId") Long eventId, @RequestBody Long count) {
+        log.info("Пришел PUT запрос /admin/events/request/{} с телом {}", eventId, count);
         eventService.setConfirmedRequests(eventId, count);
+        log.info("Обработан PUT запрос /admin/events/request/{} - установлено confirmedRequests={}",
+                eventId, count);
     }
 }

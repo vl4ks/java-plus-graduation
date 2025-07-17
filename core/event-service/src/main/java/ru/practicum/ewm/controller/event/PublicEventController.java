@@ -55,11 +55,18 @@ public class PublicEventController {
     @GetMapping("/recommendations")
     public List<EventShortDto> getEventsRecommendations(@RequestHeader(AuthHeaderKey) Long userId,
                                                         @RequestParam(defaultValue = "10") int maxResults) {
-        return eventService.getEventsRecommendations(userId, maxResults);
+        log.info("Пришел GET запрос /events/recommendations от пользователя {} с параметром maxResults={}",
+                userId, maxResults);
+        List<EventShortDto> recommendations = eventService.getEventsRecommendations(userId, maxResults);
+        log.info("Отправлен ответ GET /events/recommendations пользователю {} с телом: {}",
+                userId, recommendations);
+        return recommendations;
     }
 
     @PutMapping("/{eventId}/like")
     public void addLikeToEvent(@PathVariable Long eventId, @RequestHeader(AuthHeaderKey) Long userId) {
+        log.info("Пришел PUT запрос /events/{}/like от пользователя {}", eventId, userId);
         eventService.addLikeToEvent(eventId, userId);
+        log.info("Обработан PUT запрос /events/{}/like от пользователя {}", eventId, userId);
     }
 }

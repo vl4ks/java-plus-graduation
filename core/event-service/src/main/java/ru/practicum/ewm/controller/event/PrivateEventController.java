@@ -59,14 +59,20 @@ public class PrivateEventController {
 
     @GetMapping("/{eventId}/requests")
     public List<ParticipationRequestDto> getRequestsOfUserEvent(@PathVariable Long userId, @PathVariable Long eventId) {
-        return eventService.getRequestsOfUserEvent(userId, eventId);
+        log.info("Пришел GET запрос /users/{}/events/{}/requests", userId, eventId);
+        List<ParticipationRequestDto> requests = eventService.getRequestsOfUserEvent(userId, eventId);
+        log.info("Отправлен ответ GET /users/{}/events/{}/requests с телом: {}",
+                userId, eventId, requests);
+        return requests;
     }
 
     @PatchMapping("/{eventId}/requests")
     public EventRequestStatusUpdateResult updateRequestsStatus(@PathVariable Long userId, @PathVariable Long eventId,
                                                                @Valid @RequestBody
                                                                EventRequestStatusUpdateRequest updateRequest) {
-        log.info("Получен запрос на обновление статусов заявок");
-        return eventService.updateRequestsStatus(updateRequest, userId, eventId);
+        log.info("Пришел PATCH запрос /users/{}/events/{}/requests с телом {}", userId, eventId, updateRequest);
+        EventRequestStatusUpdateResult result = eventService.updateRequestsStatus(updateRequest, userId, eventId);
+        log.info("Отправлен ответ PATCH /users/{}/events/{}/requests с телом: {}", userId, eventId, result);
+        return result;
     }
 }
