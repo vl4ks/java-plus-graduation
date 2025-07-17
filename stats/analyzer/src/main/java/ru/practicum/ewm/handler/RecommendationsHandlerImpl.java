@@ -35,34 +35,26 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
             return List.of();
         }
 
-        List<EventSimilarity> eventSimilarities = eventSimilarityRepository.findAllByEventAIn(userActions.stream()
-                        .map(UserAction::getEventId)
-                        .collect(Collectors.toSet()),
-                PageRequest.of(0, maxResults, Sort.by(Sort.Direction.DESC, "score")));
-        List<EventSimilarity> eventSimilaritiesB = eventSimilarityRepository.findAllByEventBIn(userActions.stream()
-                        .map(UserAction::getEventId)
-                        .collect(Collectors.toSet()),
-                PageRequest.of(0, maxResults, Sort.by(Sort.Direction.DESC, "score")));
+        Set<Long> userEventIds = userActions.stream()
+                .map(UserAction::getEventId)
+                .collect(Collectors.toSet());
 
-        List<Long> newEventIdsA = eventSimilarities.stream()
-                .map(EventSimilarity::getEventB)
-                .filter(eventId -> !userActionRepository.existsByEventIdAndUserId(eventId, userId))
-                .distinct()
-                .toList();
+        List<EventSimilarity> eventSimilarities = eventSimilarityRepository.findAllByEventAInOrEventBIn(
+                userEventIds, userEventIds,
+                PageRequest.of(0, maxResults * 2, Sort.by(Sort.Direction.DESC, "score")));
 
-        List<Long> newEventIdsB = eventSimilaritiesB.stream()
-                .map(EventSimilarity::getEventA)
-                .filter(eventId -> !userActionRepository.existsByEventIdAndUserId(eventId, userId))
-                .distinct()
-                .toList();
+        Set<Long> allUserEventIds = userActionRepository.findAllEventIdsByUserId(userId);
 
-        Set<Long> newEventIds = new HashSet<>(newEventIdsA);
-        newEventIds.addAll(newEventIdsB);
+        Set<Long> newEventIds = eventSimilarities.stream()
+                .map(es -> es.getEventA().equals(userEventIds) ? es.getEventB() : es.getEventA())
+                .filter(eventId -> !allUserEventIds.contains(eventId))
+                .limit(maxResults * 2L)
+                .collect(Collectors.toSet());
 
         return newEventIds.stream()
                 .map(eId -> RecommendedEventProto.newBuilder()
                         .setEventId(eId)
-                        .setScore(calculateScore(eId, userId, maxResults))
+                        .setScore(calculateScore(eId, userId, allUserEventIds, maxResults))
                         .build())
                 .sorted(Comparator.comparing(RecommendedEventProto::getScore).reversed())
                 .limit(maxResults)
@@ -73,34 +65,34 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
     public List<RecommendedEventProto> getSimilarEvents(SimilarEventsRequestProto request) {
         Long eventId = request.getEventId();
         Long userId = request.getUserId();
+        int maxResults = request.getMaxResults();
 
-        List<EventSimilarity> eventSimilaritiesA = eventSimilarityRepository.findAllByEventA(eventId,
-                PageRequest.of(0, request.getMaxResults(), Sort.by(Sort.Direction.DESC, "score")));
-        List<EventSimilarity> eventSimilaritiesB = eventSimilarityRepository.findAllByEventB(eventId,
-                PageRequest.of(0, request.getMaxResults(), Sort.by(Sort.Direction.DESC, "score")));
+        List<EventSimilarity> eventSimilarities = eventSimilarityRepository.findAllByEventAOrEventB(
+                eventId, eventId,
+                PageRequest.of(0, maxResults * 2, Sort.by(Sort.Direction.DESC, "score")));
 
-        List<RecommendedEventProto> recommendations = new ArrayList<>(eventSimilaritiesA.stream()
-                .filter(es -> !userActionRepository.existsByEventIdAndUserId(es.getEventB(), userId))
-                .map(es -> RecommendedEventProto.newBuilder()
-                        .setEventId(es.getEventB())
-                        .setScore(es.getScore())
+        if (eventSimilarities.isEmpty()) {
+            return List.of();
+        }
+
+        Set<Long> userViewedEvents = userActionRepository.findAllEventIdsByUserId(userId);
+
+        List<RecommendedEventProto> recommendations = eventSimilarities.stream()
+                .map(es -> {
+                    Long similarEventId = es.getEventA().equals(eventId) ? es.getEventB() : es.getEventA();
+                    return new AbstractMap.SimpleEntry<>(similarEventId, es.getScore());
+                })
+                .filter(entry -> !userViewedEvents.contains(entry.getKey()))
+                .distinct()
+                .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
+                .limit(maxResults)
+                .map(entry -> RecommendedEventProto.newBuilder()
+                        .setEventId(entry.getKey())
+                        .setScore(entry.getValue())
                         .build())
-                .toList());
+                .collect(Collectors.toList());
 
-        List<RecommendedEventProto> recommendationsB = eventSimilaritiesB.stream()
-                .filter(es -> !userActionRepository.existsByEventIdAndUserId(es.getEventA(), userId))
-                .map(es -> RecommendedEventProto.newBuilder()
-                        .setEventId(es.getEventA())
-                        .setScore(es.getScore())
-                        .build())
-                .toList();
-
-        recommendations.addAll(recommendationsB);
-
-        return recommendations.stream()
-                .sorted(Comparator.comparing(RecommendedEventProto::getScore).reversed())
-                .limit(request.getMaxResults())
-                .toList();
+        return recommendations;
     }
 
     @Override
@@ -114,34 +106,36 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
                 .toList());
     }
 
-    private float calculateScore(Long eventId, Long userId, int limit) {
-        List<EventSimilarity> eventSimilaritiesA = eventSimilarityRepository.findAllByEventA(eventId,
-                PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "score")));
+    private float calculateScore(Long eventId, Long userId, Set<Long> userEventIds, int limit) {
+        List<EventSimilarity> eventSimilarities = eventSimilarityRepository.findAllByEventAOrEventB(
+                eventId, eventId,
+                PageRequest.of(0, limit * 2, Sort.by(Sort.Direction.DESC, "score")));
 
-        List<EventSimilarity> eventSimilaritiesB = eventSimilarityRepository.findAllByEventB(eventId,
-                PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "score")));
+        Map<Long, Double> viewedEventScores = eventSimilarities.stream()
+                .filter(es -> {
+                    Long otherEvent = es.getEventA().equals(eventId) ? es.getEventB() : es.getEventA();
+                    return userEventIds.contains(otherEvent);
+                })
+                .collect(Collectors.toMap(
+                        es -> es.getEventA().equals(eventId) ? es.getEventB() : es.getEventA(),
+                        EventSimilarity::getScore
+                ));
 
-        Map<Long, Double> viewedEventScores = eventSimilaritiesA.stream()
-                .filter(es -> userActionRepository.existsByEventIdAndUserId(es.getEventB(), userId))
-                .collect(Collectors.toMap(EventSimilarity::getEventB, EventSimilarity::getScore));
+        if (viewedEventScores.isEmpty()) {
+            return 0f;
+        }
 
-        Map<Long, Double> viewedEventScoresB = eventSimilaritiesB.stream()
-                .filter(es -> userActionRepository.existsByEventIdAndUserId(es.getEventA(), userId))
-                .collect(Collectors.toMap(EventSimilarity::getEventA, EventSimilarity::getScore));
-
-        viewedEventScores.putAll(viewedEventScoresB);
-
-        Map<Long, Float> actionMarks = userActionRepository.findAllByEventIdInAndUserId(viewedEventScores.keySet(),
-                        userId).stream()
+        Map<Long, Float> actionMarks = userActionRepository.findAllByEventIdInAndUserId(
+                        viewedEventScores.keySet(), userId).stream()
                 .collect(Collectors.toMap(UserAction::getEventId, UserAction::getMark));
 
-        Float sumWeightedMarks = ((Double) viewedEventScores.entrySet().stream()
-                .map(entry -> actionMarks.get(entry.getKey()) * entry.getValue())
-                .mapToDouble(Double::doubleValue).sum())
-                .floatValue();
+        float sumWeightedMarks = (float) viewedEventScores.entrySet().stream()
+                .mapToDouble(entry -> actionMarks.getOrDefault(entry.getKey(), 0f) * entry.getValue())
+                .sum();
 
-        Float sumScores = ((Double) viewedEventScores.values().stream().mapToDouble(Double::doubleValue).sum())
-                .floatValue();
+        float sumScores = (float) viewedEventScores.values().stream()
+                .mapToDouble(Double::doubleValue)
+                .sum();
 
         return sumWeightedMarks / sumScores;
     }
