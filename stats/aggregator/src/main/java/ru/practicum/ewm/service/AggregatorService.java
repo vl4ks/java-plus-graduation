@@ -41,13 +41,22 @@ public class AggregatorService implements Runnable {
                     log.info("Получено " + records.count() + " сообщений.");
                 }
                 for (ConsumerRecord<Long, UserActionAvro> record : records) {
-                    UserActionAvro userActionAvro = record.value();
-                    List<EventSimilarityAvro> result = handler.calculateSimilarity(userActionAvro);
-                    log.info("Подготовлено " + result.size() + " сообщений.");
-                    producer.send(result, topicEventSimilarity);
-                    producer.flush();
+                    try {
+                        UserActionAvro userActionAvro = record.value();
+                        List<EventSimilarityAvro> result = handler.calculateSimilarity(userActionAvro);
+                        if (result == null || result.isEmpty()) {
+                            log.debug("Нет данных для отправки для события {}", userActionAvro.getEventId());
+                            continue;
+                        }
+
+                        log.debug("Подготовлено {} сообщений для события {}", result.size(), userActionAvro.getEventId());
+                        producer.send(result, topicEventSimilarity);
+                    } catch (Exception e) {
+                        log.error("Ошибка обработки сообщения: {}", record, e);
+                    }
                 }
                 consumer.commitAsync();
+                producer.flush();
             }
         } catch (WakeupException ignored) {
         } catch (Exception e) {

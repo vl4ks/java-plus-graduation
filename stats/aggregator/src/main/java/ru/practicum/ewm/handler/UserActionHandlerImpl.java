@@ -70,7 +70,6 @@ public class UserActionHandlerImpl implements UserActionHandler {
         if (oldWeight == null || result > oldWeight) {
 
             userActions.put(userId, result);
-            eventActions.put(eventId, userActions);
 
             double diff = oldWeight == null ? result : result - oldWeight;
             return diff;
