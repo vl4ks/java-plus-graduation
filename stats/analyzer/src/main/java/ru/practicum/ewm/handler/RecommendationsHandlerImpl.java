@@ -45,20 +45,7 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
 
         Set<Long> allUserEventIds = userActionRepository.findAllEventIdsByUserId(userId);
 
-        Set<Long> newEventIds = eventSimilarities.stream()
-                .map(es -> es.getEventA().equals(userEventIds) ? es.getEventB() : es.getEventA())
-                .filter(eventId -> !allUserEventIds.contains(eventId))
-                .limit(maxResults * 2L)
-                .collect(Collectors.toSet());
-
-        return newEventIds.stream()
-                .map(eId -> RecommendedEventProto.newBuilder()
-                        .setEventId(eId)
-                        .setScore(calculateScore(eId, userId, allUserEventIds, maxResults))
-                        .build())
-                .sorted(Comparator.comparing(RecommendedEventProto::getScore).reversed())
-                .limit(maxResults)
-                .toList();
+        return processSimilarEvents(eventSimilarities, userEventIds, allUserEventIds, userId, maxResults);
     }
 
     @Override
@@ -76,23 +63,9 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
         }
 
         Set<Long> userViewedEvents = userActionRepository.findAllEventIdsByUserId(userId);
+        Set<Long> sourceEventIds = Set.of(eventId);
 
-        List<RecommendedEventProto> recommendations = eventSimilarities.stream()
-                .map(es -> {
-                    Long similarEventId = es.getEventA().equals(eventId) ? es.getEventB() : es.getEventA();
-                    return new AbstractMap.SimpleEntry<>(similarEventId, es.getScore());
-                })
-                .filter(entry -> !userViewedEvents.contains(entry.getKey()))
-                .distinct()
-                .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
-                .limit(maxResults)
-                .map(entry -> RecommendedEventProto.newBuilder()
-                        .setEventId(entry.getKey())
-                        .setScore(entry.getValue())
-                        .build())
-                .collect(Collectors.toList());
-
-        return recommendations;
+        return processSimilarEvents(eventSimilarities, sourceEventIds, userViewedEvents, userId, maxResults);
     }
 
     @Override
@@ -145,5 +118,26 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
         }
 
         return sumWeightedMarks / sumScores;
+    }
+
+    private List<RecommendedEventProto> processSimilarEvents(List<EventSimilarity> eventSimilarities,
+                                                             Set<Long> sourceEventIds,
+                                                             Set<Long> excludedEventIds,
+                                                             Long userId,
+                                                             int maxResults) {
+        Set<Long> newEventIds = eventSimilarities.stream()
+                .map(es -> sourceEventIds.contains(es.getEventA()) ? es.getEventB() : es.getEventA())
+                .filter(eventId -> !excludedEventIds.contains(eventId))
+                .limit(maxResults * 2L)
+                .collect(Collectors.toSet());
+
+        return newEventIds.stream()
+                .map(eId -> RecommendedEventProto.newBuilder()
+                        .setEventId(eId)
+                        .setScore(calculateScore(eId, userId, excludedEventIds, maxResults))
+                        .build())
+                .sorted(Comparator.comparing(RecommendedEventProto::getScore).reversed())
+                .limit(maxResults)
+                .collect(Collectors.toList());
     }
 }
