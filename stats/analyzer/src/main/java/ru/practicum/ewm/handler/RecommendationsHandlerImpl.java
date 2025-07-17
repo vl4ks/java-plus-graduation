@@ -97,13 +97,16 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
 
     @Override
     public List<RecommendedEventProto> getInteractionsCount(InteractionsCountRequestProto request) {
-        return new ArrayList<>(request.getEventIdList().stream()
-                .map(eId -> RecommendedEventProto.newBuilder()
-                        .setEventId(eId)
-                        .setScore(userActionRepository.getSumWeightByEventId(eId))
-                        .build())
+        return request.getEventIdList().stream()
+                .map(eId -> {
+                    Float score = userActionRepository.getSumWeightByEventId(eId);
+                    return RecommendedEventProto.newBuilder()
+                            .setEventId(eId)
+                            .setScore(score != null ? score : 0f)
+                            .build();
+                })
                 .sorted(Comparator.comparing(RecommendedEventProto::getScore).reversed())
-                .toList());
+                .collect(Collectors.toList());
     }
 
     private float calculateScore(Long eventId, Long userId, Set<Long> userEventIds, int limit) {
@@ -136,6 +139,10 @@ public class RecommendationsHandlerImpl implements RecommendationsHandler {
         float sumScores = (float) viewedEventScores.values().stream()
                 .mapToDouble(Double::doubleValue)
                 .sum();
+
+        if (sumScores == 0f) {
+            return 0f;
+        }
 
         return sumWeightedMarks / sumScores;
     }
