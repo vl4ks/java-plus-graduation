@@ -9,6 +9,7 @@ spring:
       discovery:
         locator:
           enabled: true
+          lowerCaseServiceId: true
       routes:
         - id: admin_category
           uri: lb://event-service
@@ -54,3 +55,18 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/admin/users/**
+
+        - id: admin_comment
+          uri: lb://comment-service
+          predicates:
+            - Path=/admin/comments/**
+
+        - id: private_comment
+          uri: lb://comment-service
+          predicates:
+            - Path=/users/{userId}/comments/**
+
+        - id: public_comment
+          uri: lb://comment-service
+          predicates:
+            - Path=/comments/**

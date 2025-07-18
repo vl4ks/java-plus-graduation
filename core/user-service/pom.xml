@@ -84,7 +84,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>ru.practicum.UserServiceApp</mainClass>
+                    <mainClass>ru.practicum.ewm.UserServiceApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>

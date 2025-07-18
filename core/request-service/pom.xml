@@ -83,7 +83,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>ru.practicum.RequestServiceApp</mainClass>
+                    <mainClass>ru.practicum.ewm.RequestServiceApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>
